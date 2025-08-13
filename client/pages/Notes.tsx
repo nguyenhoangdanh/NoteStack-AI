@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuth, useDefaultWorkspace } from '../lib/query';
 import { useUIStore } from '../lib/store';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import Sidebar from '../components/Sidebar';
 import NoteEditor from '../components/NoteEditor';
 import ChatPanel from '../components/ChatPanel';
@@ -16,6 +17,9 @@ export default function Notes() {
   const defaultWorkspace = useDefaultWorkspace();
   const { selectedNoteId, sidebarOpen, chatOpen, setSidebarOpen, setSelectedWorkspaceId } = useUIStore();
   const note = useNote(selectedNoteId);
+
+  // Initialize keyboard shortcuts
+  useKeyboardShortcuts();
 
   // Set default workspace when it loads
   useEffect(() => {

@@ -19,6 +19,7 @@ import {
 import { cn } from '../lib/utils';
 import { useUpdateNote, useProcessNoteForRAG, useSettings } from '../lib/query';
 import { useUIStore } from '../lib/store';
+import { toastMessages } from '../lib/toast';
 import type { Id } from '../../convex/_generated/dataModel';
 
 interface NoteEditorProps {
@@ -80,6 +81,18 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
     }
   }, [note, editor, getDraft]);
 
+  // Listen for save shortcut
+  useEffect(() => {
+    const handleSaveShortcut = () => {
+      if (hasUnsavedChanges) {
+        handleSave();
+      }
+    };
+
+    window.addEventListener('save-note', handleSaveShortcut);
+    return () => window.removeEventListener('save-note', handleSaveShortcut);
+  }, [hasUnsavedChanges, handleSave]);
+
   const handleSave = useCallback(async () => {
     if (!note || !editor) return;
 
@@ -100,8 +113,10 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
 
       setHasUnsavedChanges(false);
       deleteDraft(note._id);
+      toastMessages.noteSaved();
     } catch (error) {
       console.error('Failed to save note:', error);
+      toastMessages.saveError();
     }
   }, [note, editor, title, tags, updateNote, processNoteForRAG, settings, deleteDraft]);
 
