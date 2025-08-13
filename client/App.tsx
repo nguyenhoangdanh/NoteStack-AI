@@ -4,7 +4,7 @@ import { ConvexAuthProvider } from '@convex-dev/auth/react';
 import { QueryProvider } from './lib/query';
 import { useAuth } from './lib/query';
 import { ThemeProvider } from 'next-themes';
-import { Toaster } from 'sonner';
+import { Toaster } from './components/ui/toaster';
 import { useUIStore } from './lib/store';
 import Notes from './pages/Notes';
 import Settings from './pages/Settings';
