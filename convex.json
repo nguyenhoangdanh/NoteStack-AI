@@ -2,6 +2,6 @@
   "functions": "convex/",
   "generateCommonJSApi": false,
   "node": {
-    "externalPackages": ["bcryptjs"]
+    "externalPackages": ["@ai-sdk/openai", "openai", "markdown-it"]
   }
 }
