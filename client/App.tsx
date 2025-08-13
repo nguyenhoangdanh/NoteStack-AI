@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "./components/ui/toaster";
 import Index from "./pages/Index";
-import Notes from "./pages/Notes";
+import NotesDemo from "./pages/NotesDemo";
 import { Loader2 } from "lucide-react";
 
 // Simple demo component for now
@@ -14,7 +14,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/notes" element={<Notes />} />
+          <Route path="/notes" element={<NotesDemo />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toaster />
