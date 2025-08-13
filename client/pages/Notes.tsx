@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useConvexAuth } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  useNotes,
+  useWorkspaces,
+  useDefaultWorkspace,
+  useCreateNote,
+  useUpdateNote,
+  useNote,
+  useDeleteNote,
+} from "../hooks/useApi";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -36,66 +42,70 @@ import {
   Save,
   LogOut,
   Loader2,
+  Trash2,
+  MoreHorizontal,
 } from "lucide-react";
 import { cn } from "../lib/utils";
-import type { Id } from "../../convex/_generated/dataModel";
-
-// Demo fallback data in case Convex isn't fully configured
-const demoNotes = [
-  {
-    _id: "demo1" as Id<"notes">,
-    title: "Welcome to AI Notes!",
-    content:
-      "# Welcome to AI Notes!\n\nThis is your first note. Start writing your thoughts, ideas, and insights here.\n\n## Features\n- Real-time sync across devices\n- AI-powered search\n- Smart tagging\n- Markdown support\n\nEnjoy your note-taking journey!",
-    tags: ["welcome", "getting-started"],
-    workspaceId: "demo-workspace" as Id<"workspaces">,
-    ownerId: "demo-user" as Id<"users">,
-    isDeleted: false,
-    createdAt: Date.now() - 1000 * 60 * 30,
-    updatedAt: Date.now() - 1000 * 60 * 30,
-  },
-];
+import ChatPanel from "../components/ChatPanel";
+import NoteEditor from "../components/NoteEditor";
+import CommandPalette from "../components/CommandPalette";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useUIStore } from "../lib/store";
+import { formatDistanceToNow } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 
 export default function Notes() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, isLoading: authLoading, isAuthenticated } = useConvexAuth();
-  const { signOut } = useAuthActions();
+  const { user, isLoading: authLoading, isAuthenticated, logout } = useAuth();
 
-  const [selectedNoteId, setSelectedNoteId] = useState<Id<"notes"> | null>(
-    null,
-  );
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [chatOpen, setChatOpen] = useState(searchParams.get("chat") === "true");
-  const [searchQuery, setSearchQuery] = useState("");
+  // UI Store
+  const {
+    selectedNoteId,
+    sidebarOpen,
+    chatOpen,
+    selectedWorkspaceId,
+    searchQuery,
+    setSelectedNoteId,
+    setSidebarOpen,
+    setChatOpen,
+    setSelectedWorkspaceId,
+    setSearchQuery,
+  } = useUIStore();
+
+  // Local state for note creation
   const [newNoteTitle, setNewNoteTitle] = useState("Untitled Note");
-  const [noteContent, setNoteContent] = useState("");
-  const [noteTags, setNoteTags] = useState<string[]>([]);
 
-  // Convex queries and mutations
-  const workspaces = useQuery(api.workspaces?.list);
-  const defaultWorkspace = useQuery(api.workspaces?.getDefault);
-  const notes = useQuery(
-    api.notes?.list,
-    defaultWorkspace ? { workspaceId: defaultWorkspace._id } : "skip",
-  );
-  const selectedNote = useQuery(
-    api.notes?.get,
-    selectedNoteId ? { id: selectedNoteId } : "skip",
-  );
+  // Set initial state from URL params
+  useEffect(() => {
+    if (searchParams.get("chat") === "true" && !chatOpen) {
+      setChatOpen(true);
+    }
+  }, [searchParams, chatOpen, setChatOpen]);
 
-  const createNote = useMutation(api.notes?.create);
-  const updateNote = useMutation(api.notes?.update);
+  // API queries
+  const { data: workspaces } = useWorkspaces();
+  const { data: defaultWorkspace } = useDefaultWorkspace();
+  const currentWorkspaceId = selectedWorkspaceId || defaultWorkspace?.id;
+  const { data: notes, isLoading: notesLoading } = useNotes(currentWorkspaceId);
+  const { data: selectedNote } = useNote(selectedNoteId);
 
-  // Use demo data if Convex queries fail
-  const displayNotes = notes || demoNotes;
-  const currentWorkspace = defaultWorkspace || {
-    _id: "demo-workspace" as Id<"workspaces">,
-    name: "My Workspace",
-  };
+  // Mutations
+  const createNote = useCreateNote();
+  const updateNote = useUpdateNote();
+  const deleteNote = useDeleteNote();
+
+  // Initialize keyboard shortcuts
+  useKeyboardShortcuts();
 
   // Filter notes based on search
-  const filteredNotes = displayNotes.filter(
+  const filteredNotes = (notes || []).filter(
     (note) =>
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -104,65 +114,49 @@ export default function Notes() {
       ),
   );
 
-  // Load note content when selected note changes
-  useEffect(() => {
-    if (selectedNote) {
-      setNoteContent(selectedNote.content);
-      setNoteTags(selectedNote.tags);
-    } else if (selectedNoteId && displayNotes.length > 0) {
-      const demoNote = displayNotes.find((n) => n._id === selectedNoteId);
-      if (demoNote) {
-        setNoteContent(demoNote.content);
-        setNoteTags(demoNote.tags);
-      }
-    }
-  }, [selectedNote, selectedNoteId, displayNotes]);
-
-  // Select first note by default
+  // Select first note by default if none selected
   useEffect(() => {
     if (!selectedNoteId && filteredNotes.length > 0) {
-      setSelectedNoteId(filteredNotes[0]._id);
+      setSelectedNoteId(filteredNotes[0].id);
     }
-  }, [filteredNotes, selectedNoteId]);
+  }, [filteredNotes, selectedNoteId, setSelectedNoteId]);
 
   const handleCreateNote = async () => {
-    if (!defaultWorkspace) return;
+    if (!currentWorkspaceId) return;
 
     try {
-      const noteId = await createNote({
+      const note = await createNote.mutateAsync({
         title: newNoteTitle,
-        content: "# " + newNoteTitle + "\n\nStart writing your note here...",
+        content: `# ${newNoteTitle}\n\nStart writing your note here...`,
         tags: [],
-        workspaceId: defaultWorkspace._id,
+        workspaceId: currentWorkspaceId,
       });
-      setSelectedNoteId(noteId);
+      setSelectedNoteId(note.id);
       setNewNoteTitle("Untitled Note");
     } catch (error) {
       console.error("Failed to create note:", error);
     }
   };
 
-  const handleSaveNote = async () => {
-    if (!selectedNoteId || !selectedNote) return;
-
-    try {
-      await updateNote({
-        id: selectedNoteId,
-        content: noteContent,
-        tags: noteTags,
-      });
-    } catch (error) {
-      console.error("Failed to save note:", error);
+  const handleDeleteNote = async (noteId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    
+    if (confirm("Are you sure you want to delete this note?")) {
+      try {
+        await deleteNote.mutateAsync(noteId);
+        if (selectedNoteId === noteId) {
+          const remainingNotes = filteredNotes.filter(n => n.id !== noteId);
+          setSelectedNoteId(remainingNotes.length > 0 ? remainingNotes[0].id : null);
+        }
+      } catch (error) {
+        console.error("Failed to delete note:", error);
+      }
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate("/");
-    } catch (error) {
-      console.error("Failed to sign out:", error);
-    }
+  const handleSignOut = () => {
+    logout();
+    navigate("/");
   };
 
   if (authLoading) {
@@ -180,14 +174,11 @@ export default function Notes() {
     return <Navigate to="/login" replace />;
   }
 
-  const currentNote =
-    selectedNote ||
-    (selectedNoteId
-      ? displayNotes.find((n) => n._id === selectedNoteId)
-      : null);
-
   return (
     <div className="h-screen flex flex-col bg-background">
+      {/* Command Palette */}
+      <CommandPalette />
+
       {/* Header */}
       <div className="flex-shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between h-14 px-4">
@@ -202,19 +193,47 @@ export default function Notes() {
               </Button>
             )}
             <h1 className="font-semibold">AI Notes</h1>
+            {workspaces && workspaces.length > 1 && (
+              <Badge variant="outline" className="text-xs">
+                {workspaces.find(w => w.id === currentWorkspaceId)?.name || 'Workspace'}
+              </Badge>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              Welcome, {user?.name || "User"}
+              Welcome, {user?.name || user?.email?.split('@')[0] || "User"}
             </div>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.image} />
-              <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
-            </Avatar>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.image || undefined} />
+                    <AvatarFallback>
+                      {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex flex-col space-y-1 p-2">
+                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email}
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/settings")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -230,7 +249,9 @@ export default function Notes() {
                   {/* Sidebar Header */}
                   <div className="p-4 border-b space-y-4">
                     <div className="flex items-center justify-between">
-                      <h2 className="font-semibold">{currentWorkspace.name}</h2>
+                      <h2 className="font-semibold">
+                        {workspaces?.find(w => w.id === currentWorkspaceId)?.name || 'Notes'}
+                      </h2>
                       <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
@@ -239,6 +260,14 @@ export default function Notes() {
                           className={cn("h-8 w-8 p-0", chatOpen && "bg-accent")}
                         >
                           <MessageSquare className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate("/settings")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Settings className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -261,6 +290,21 @@ export default function Notes() {
                       />
                     </div>
 
+                    {/* Workspace selector */}
+                    {workspaces && workspaces.length > 1 && (
+                      <select
+                        value={currentWorkspaceId || ''}
+                        onChange={(e) => setSelectedWorkspaceId(e.target.value)}
+                        className="w-full p-2 border rounded-md text-sm"
+                      >
+                        {workspaces.map((workspace) => (
+                          <option key={workspace.id} value={workspace.id}>
+                            {workspace.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
                     <div className="flex gap-2">
                       <Input
                         value={newNoteTitle}
@@ -271,7 +315,11 @@ export default function Notes() {
                           e.key === "Enter" && handleCreateNote()
                         }
                       />
-                      <Button onClick={handleCreateNote} size="sm">
+                      <Button 
+                        onClick={handleCreateNote} 
+                        size="sm"
+                        disabled={createNote.isPending}
+                      >
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
@@ -280,7 +328,12 @@ export default function Notes() {
                   {/* Notes List */}
                   <ScrollArea className="flex-1">
                     <div className="p-2">
-                      {filteredNotes.length === 0 ? (
+                      {notesLoading ? (
+                        <div className="text-center py-8">
+                          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">Loading notes...</p>
+                        </div>
+                      ) : filteredNotes.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">
                           <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
                           <p className="text-sm">
@@ -301,11 +354,11 @@ export default function Notes() {
                         <div className="space-y-1">
                           {filteredNotes.map((note) => (
                             <div
-                              key={note._id}
-                              onClick={() => setSelectedNoteId(note._id)}
+                              key={note.id}
+                              onClick={() => setSelectedNoteId(note.id)}
                               className={cn(
-                                "p-3 rounded-lg cursor-pointer hover:bg-accent transition-colors",
-                                selectedNoteId === note._id && "bg-accent",
+                                "p-3 rounded-lg cursor-pointer hover:bg-accent transition-colors group relative",
+                                selectedNoteId === note.id && "bg-accent",
                               )}
                             >
                               <div className="font-medium text-sm truncate mb-1">
@@ -317,8 +370,23 @@ export default function Notes() {
                                   .substring(0, 80)}
                                 {note.content.length > 80 && "..."}
                               </div>
+                              
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs text-muted-foreground">
+                                  {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => handleDeleteNote(note.id, e)}
+                                  className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+
                               {note.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-1 mt-2">
                                   {note.tags.slice(0, 2).map((tag) => (
                                     <Badge
                                       key={tag}
@@ -352,60 +420,7 @@ export default function Notes() {
 
           {/* Editor */}
           <ResizablePanel defaultSize={chatOpen ? 45 : 75} minSize={30}>
-            <div className="h-full flex flex-col">
-              {currentNote ? (
-                <>
-                  {/* Editor Header */}
-                  <div className="flex-shrink-0 border-b bg-background/95 backdrop-blur p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold truncate">
-                        {currentNote.title}
-                      </h2>
-                      <Button onClick={handleSaveNote} size="sm">
-                        <Save className="w-4 h-4 mr-2" />
-                        Save
-                      </Button>
-                    </div>
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      {noteTags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          <Tag className="w-3 h-3 mr-1" />
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Editor Content */}
-                  <div className="flex-1 overflow-auto">
-                    <div className="p-6">
-                      <textarea
-                        value={noteContent}
-                        onChange={(e) => setNoteContent(e.target.value)}
-                        placeholder="Start writing your note..."
-                        className="w-full h-full min-h-[500px] bg-transparent border-none resize-none focus:outline-none text-sm font-mono leading-relaxed"
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                  <div className="text-center">
-                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <h3 className="text-lg font-medium mb-2">
-                      No note selected
-                    </h3>
-                    <p>Select a note from the sidebar to start editing.</p>
-                  </div>
-                </div>
-              )}
-            </div>
+            <NoteEditor note={selectedNote || null} />
           </ResizablePanel>
 
           {/* Chat Panel */}
@@ -413,36 +428,7 @@ export default function Notes() {
             <>
               <ResizableHandle />
               <ResizablePanel defaultSize={30} minSize={25} maxSize={50}>
-                <Card className="h-full flex flex-col rounded-none border-0 border-l">
-                  <CardHeader className="border-b">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">Ask My Notes</CardTitle>
-                        <CardDescription>
-                          AI-powered search (Coming Soon)
-                        </CardDescription>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setChatOpen(false)}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  </CardHeader>
-
-                  <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                    <div className="text-center p-8">
-                      <Bot className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <h3 className="font-medium mb-2">AI Chat Coming Soon</h3>
-                      <p className="text-sm">
-                        The AI chat feature will be available once you configure
-                        your OpenAI API key in the Convex environment.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                <ChatPanel />
               </ResizablePanel>
             </>
           )}

@@ -1,7 +1,0 @@
-{
-  "functions": "convex/",
-  "generateCommonJSApi": false,
-  "node": {
-    "externalPackages": ["@ai-sdk/openai", "openai", "markdown-it"]
-  }
-}

@@ -16,7 +16,7 @@ import { Eye, EyeOff, UserPlus, Mail, Lock, User } from "lucide-react";
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { register, loading } = useAuth();
+  const { register, isLoading: authLoading } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +43,7 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      await register(name, email, password);
+      await register({ name, email, password });
       navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
@@ -52,7 +52,7 @@ export default function Signup() {
     }
   };
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

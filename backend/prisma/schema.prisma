@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  password  String?  // Add password field for credentials auth
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspaces Workspace[]
+  notes      Note[]
+  vectors    Vector[]
+  settings   Settings?
+  usage      Usage[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  notes Note[]
+
+  @@map("workspaces")
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  tags        String[]
+  workspaceId String
+  ownerId     String
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  vectors   Vector[]
+
+  @@map("notes")
+}
+
+model Vector {
+  id           String   @id @default(cuid())
+  noteId       String
+  chunkId      String
+  chunkContent String
+  chunkIndex   Int
+  heading      String?
+  embedding    Float[]
+  ownerId      String
+  createdAt    DateTime @default(now())
+
+  note  Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("vectors")
+}
+
+model Settings {
+  id          String   @id @default(cuid())
+  ownerId     String   @unique
+  model       String   @default("gemini-1.5-flash")
+  maxTokens   Int      @default(4000)
+  autoReembed Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("settings")
+}
+
+model Usage {
+  id              String   @id @default(cuid())
+  ownerId         String
+  date            String   // YYYY-MM-DD format
+  embeddingTokens Int      @default(0)
+  chatTokens      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, date])
+  @@map("usage")
+}

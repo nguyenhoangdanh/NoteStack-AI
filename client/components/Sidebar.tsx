@@ -16,18 +16,17 @@ import {
   Trash2,
   Edit2,
 } from "lucide-react";
-import { cn } from "../lib/utils";
 import {
   useNotes,
   useWorkspaces,
   useDefaultWorkspace,
   useCreateNote,
   useDeleteNote,
-} from "../lib/query";
+} from "../hooks/useApi";
 import { useUIStore } from "../lib/store";
 import { formatDistanceToNow } from "date-fns";
 import SearchBar from "./SearchBar";
-import type { Id } from "../../convex/_generated/dataModel";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   className?: string;
@@ -49,10 +48,10 @@ export default function Sidebar({ className }: SidebarProps) {
     setSidebarOpen,
   } = useUIStore();
 
-  const workspaces = useWorkspaces();
-  const defaultWorkspace = useDefaultWorkspace();
-  const currentWorkspaceId = selectedWorkspaceId || defaultWorkspace?._id;
-  const notes = useNotes(currentWorkspaceId);
+  const { data: workspaces } = useWorkspaces();
+  const { data: defaultWorkspace } = useDefaultWorkspace();
+  const currentWorkspaceId = selectedWorkspaceId || defaultWorkspace?.id;
+  const { data: notes } = useNotes(currentWorkspaceId);
   const createNote = useCreateNote();
   const deleteNote = useDeleteNote();
 
@@ -68,13 +67,13 @@ export default function Sidebar({ className }: SidebarProps) {
 
     setIsCreating(true);
     try {
-      const noteId = await createNote.mutateAsync({
+      const note = await createNote.mutateAsync({
         title: "Untitled Note",
         content: "",
         tags: [],
         workspaceId: currentWorkspaceId,
       });
-      setSelectedNoteId(noteId);
+      setSelectedNoteId(note.id);
     } catch (error) {
       console.error("Failed to create note:", error);
     } finally {
@@ -82,7 +81,7 @@ export default function Sidebar({ className }: SidebarProps) {
     }
   };
 
-  const handleDeleteNote = async (noteId: Id<"notes">, e: React.MouseEvent) => {
+  const handleDeleteNote = async (noteId: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
     if (confirm("Are you sure you want to delete this note?")) {
@@ -179,12 +178,12 @@ export default function Sidebar({ className }: SidebarProps) {
           <div className="space-y-1">
             {workspaces.map((workspace) => (
               <Button
-                key={workspace._id}
+                key={workspace.id}
                 variant={
-                  selectedWorkspaceId === workspace._id ? "secondary" : "ghost"
+                  selectedWorkspaceId === workspace.id ? "secondary" : "ghost"
                 }
                 size="sm"
-                onClick={() => setSelectedWorkspaceId(workspace._id)}
+                onClick={() => setSelectedWorkspaceId(workspace.id)}
                 className="w-full justify-start"
               >
                 <Folder className="w-4 h-4 mr-2" />
@@ -246,11 +245,11 @@ export default function Sidebar({ className }: SidebarProps) {
             <div className="space-y-1">
               {filteredNotes.map((note) => (
                 <div
-                  key={note._id}
-                  onClick={() => setSelectedNoteId(note._id)}
+                  key={note.id}
+                  onClick={() => setSelectedNoteId(note.id)}
                   className={cn(
                     "p-3 rounded-lg cursor-pointer group hover:bg-accent transition-colors",
-                    selectedNoteId === note._id && "bg-accent",
+                    selectedNoteId === note.id && "bg-accent",
                   )}
                 >
                   <div className="flex items-start justify-between">
@@ -291,7 +290,7 @@ export default function Sidebar({ className }: SidebarProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => handleDeleteNote(note._id, e)}
+                      onClick={(e) => handleDeleteNote(note.id, e)}
                       className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 ml-2"
                     >
                       <Trash2 className="w-3 h-3" />

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useUIStore } from "../lib/store";
-import { useCreateNote, useDefaultWorkspace } from "../lib/query";
+import { useCreateNote, useDefaultWorkspace } from "./useApi"; // Fix import path
 
 export function useKeyboardShortcuts() {
   const {
@@ -13,7 +13,7 @@ export function useKeyboardShortcuts() {
     chatOpen,
   } = useUIStore();
 
-  const defaultWorkspace = useDefaultWorkspace();
+  const { data: defaultWorkspace } = useDefaultWorkspace(); // Fix destructuring
   const createNote = useCreateNote();
 
   useEffect(() => {
@@ -140,13 +140,13 @@ export function useKeyboardShortcuts() {
     if (!defaultWorkspace) return;
 
     try {
-      const noteId = await createNote.mutateAsync({
+      const newNote = await createNote.mutateAsync({
         title: "Untitled Note",
         content: "",
         tags: [],
-        workspaceId: defaultWorkspace._id,
+        workspaceId: defaultWorkspace.id, // Fix property access
       });
-      setSelectedNoteId(noteId);
+      setSelectedNoteId(newNote.id); // Fix to use the returned note's id
     } catch (error) {
       console.error("Failed to create note:", error);
     }

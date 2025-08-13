@@ -13,8 +13,8 @@ import { Terminal, ExternalLink, Copy, CheckCircle } from "lucide-react";
 export default function SetupRequired() {
   const [copied, setCopied] = React.useState(false);
 
-  const convexUrl = import.meta.env.VITE_CONVEX_URL;
-  const isConfigured = convexUrl && !convexUrl.includes("your-project");
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const isConfigured = apiUrl && !apiUrl.includes('localhost') && !apiUrl.includes('3001');
 
   const handleCopyCommand = (command: string) => {
     navigator.clipboard.writeText(command);
@@ -22,8 +22,9 @@ export default function SetupRequired() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (isConfigured) {
-    return null; // Let the app load normally
+  // If using local development, don't show setup screen
+  if (!isConfigured) {
+    return null;
   }
 
   return (
@@ -33,9 +34,9 @@ export default function SetupRequired() {
           <div className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-6">
             <Terminal className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Setup Required</h1>
+          <h1 className="text-3xl font-bold mb-2">Backend Setup Required</h1>
           <p className="text-muted-foreground">
-            Let's get your AI Notes app configured in just a few steps
+            Let's get your AI Notes backend configured in just a few steps
           </p>
         </div>
 
@@ -43,15 +44,14 @@ export default function SetupRequired() {
           <CardHeader>
             <CardTitle>Quick Setup (5 minutes)</CardTitle>
             <CardDescription>
-              Follow these steps to configure Convex and start using AI Notes
+              Follow these steps to configure your NestJS backend and start using AI Notes
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <Alert>
               <Terminal className="h-4 w-4" />
               <AlertDescription>
-                You'll need to run these commands in your terminal to set up the
-                backend.
+                You'll need to run these commands in your terminal to set up the backend.
               </AlertDescription>
             </Alert>
 
@@ -61,14 +61,14 @@ export default function SetupRequired() {
                   <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">
                     1
                   </span>
-                  Install Convex CLI
+                  Install Dependencies
                 </h3>
                 <div className="bg-muted rounded-lg p-3 font-mono text-sm flex items-center justify-between">
-                  <code>npm install -g convex</code>
+                  <code>cd backend && npm install</code>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleCopyCommand("npm install -g convex")}
+                    onClick={() => handleCopyCommand("cd backend && npm install")}
                   >
                     {copied ? (
                       <CheckCircle className="w-4 h-4" />
@@ -84,14 +84,14 @@ export default function SetupRequired() {
                   <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">
                     2
                   </span>
-                  Initialize Convex
+                  Setup Database
                 </h3>
                 <div className="bg-muted rounded-lg p-3 font-mono text-sm flex items-center justify-between">
-                  <code>npx convex dev</code>
+                  <code>npx prisma migrate dev</code>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleCopyCommand("npx convex dev")}
+                    onClick={() => handleCopyCommand("npx prisma migrate dev")}
                   >
                     {copied ? (
                       <CheckCircle className="w-4 h-4" />
@@ -101,8 +101,7 @@ export default function SetupRequired() {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  This will create a Convex account and project. Follow the
-                  prompts.
+                  This will create the database tables using Prisma migrations.
                 </p>
               </div>
 
@@ -111,14 +110,15 @@ export default function SetupRequired() {
                   <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">
                     3
                   </span>
-                  Update Environment
+                  Configure Environment
                 </h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Copy your Convex URL from the terminal output and update{" "}
-                  <code>.env.local</code>:
+                  Update your <code>.env</code> file with your database and API keys:
                 </p>
                 <div className="bg-muted rounded-lg p-3 font-mono text-sm">
-                  <code>VITE_CONVEX_URL=https://your-project.convex.cloud</code>
+                  <div>DATABASE_URL="your_database_url_here"</div>
+                  <div>OPENAI_API_KEY="your_openai_api_key_here"</div>
+                  <div>JWT_SECRET="your_jwt_secret_here"</div>
                 </div>
               </div>
 
@@ -127,10 +127,24 @@ export default function SetupRequired() {
                   <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm mr-2">
                     4
                   </span>
-                  Restart the App
+                  Start the Backend
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  Refresh this page after updating your environment variables.
+                <div className="bg-muted rounded-lg p-3 font-mono text-sm flex items-center justify-between">
+                  <code>npm run start:dev</code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyCommand("npm run start:dev")}
+                  >
+                    {copied ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  The backend will start on port 3001. Refresh this page after starting.
                 </p>
               </div>
             </div>
@@ -139,22 +153,22 @@ export default function SetupRequired() {
               <div className="flex gap-4">
                 <Button asChild>
                   <a
-                    href="https://docs.convex.dev/quickstart"
+                    href="https://docs.nestjs.com/"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Convex Docs
+                    NestJS Docs
                   </a>
                 </Button>
                 <Button variant="outline" asChild>
                   <a
-                    href="https://github.com/get-convex/convex-auth"
+                    href="https://www.prisma.io/docs"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Convex Auth
+                    Prisma Docs
                   </a>
                 </Button>
               </div>
@@ -162,9 +176,8 @@ export default function SetupRequired() {
 
             <Alert>
               <AlertDescription>
-                <strong>Optional:</strong> For AI features, you'll also need an
-                OpenAI API key. Add it to your Convex environment with:{" "}
-                <code>npx convex env set OPENAI_API_KEY sk-your-key</code>
+                <strong>Note:</strong> Make sure your PostgreSQL database is running and
+                accessible with the DATABASE_URL you provided.
               </AlertDescription>
             </Alert>
           </CardContent>

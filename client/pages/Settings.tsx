@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSettings, useUpdateSettings, useUsage } from "../lib/query";
+import { useSettings, useUpdateSettings, useUsage } from "../hooks/useApi";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -45,18 +45,30 @@ import {
 import ImportExport from "../components/ImportExport";
 
 const AVAILABLE_MODELS = [
-  { value: "gpt-4o-mini", label: "GPT-4o Mini (Fast & Efficient)" },
-  { value: "gpt-4o", label: "GPT-4o (Advanced)" },
-  { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
-  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
+  // Google Gemini Models (Free!) - Now first priority
+  { value: "gemini-1.5-flash", label: "🆓 Gemini 1.5 Flash (Google - Free & Fast)", provider: "google", recommended: true },
+  { value: "gemini-1.5-pro", label: "🆓 Gemini 1.5 Pro (Google - Free & Smart)", provider: "google" },
+  { value: "gemini-1.0-pro", label: "🆓 Gemini 1.0 Pro (Google - Free)", provider: "google" },
+  
+  // Groq Models (Free)
+  { value: "llama3-8b-8192", label: "🆓 Llama 3 8B (Groq - Free)", provider: "groq" },
+  { value: "llama3-70b-8192", label: "🆓 Llama 3 70B (Groq - Free)", provider: "groq" },
+  { value: "mixtral-8x7b-32768", label: "🆓 Mixtral 8x7B (Groq - Free)", provider: "groq" },
+  { value: "gemma-7b-it", label: "🆓 Gemma 7B (Groq - Free)", provider: "groq" },
+  
+  // OpenAI Models (Paid) - Now lower priority
+  { value: "gpt-4o-mini", label: "💳 GPT-4o Mini (OpenAI)", provider: "openai" },
+  { value: "gpt-4o", label: "💳 GPT-4o (OpenAI)", provider: "openai" },
+  { value: "gpt-4-turbo", label: "💳 GPT-4 Turbo (OpenAI)", provider: "openai" },
+  { value: "gpt-3.5-turbo", label: "💳 GPT-3.5 Turbo (OpenAI)", provider: "openai" },
 ];
 
 export default function Settings() {
-  const settings = useSettings();
-  const usage = useUsage(30);
+  const { data: settings } = useSettings();
+  const { data: usage } = useUsage(30);
   const updateSettings = useUpdateSettings();
 
-  const [model, setModel] = useState(settings?.model || "gpt-4o-mini");
+  const [model, setModel] = useState(settings?.model || "gemini-1.5-flash"); // Default to Gemini
   const [maxTokens, setMaxTokens] = useState(settings?.maxTokens || 4000);
   const [autoReembed, setAutoReembed] = useState(settings?.autoReembed ?? true);
   const [hasChanges, setHasChanges] = useState(false);
@@ -88,13 +100,14 @@ export default function Settings() {
   };
 
   // Prepare usage data for chart
-  const usageData =
-    usage?.map((day) => ({
-      date: new Date(day.date).toLocaleDateString(),
-      embedding: day.embeddingTokens,
-      chat: day.chatTokens,
-      total: day.embeddingTokens + day.chatTokens,
-    })) || [];
+  const usageData = usage
+    ? usage.map((day) => ({
+        date: new Date(day.date).toLocaleDateString(),
+        embedding: day.embeddingTokens,
+        chat: day.chatTokens,
+        total: day.embeddingTokens + day.chatTokens,
+      }))
+    : [];
 
   const totalTokensThisMonth = usageData.reduce(
     (sum, day) => sum + day.total,
@@ -143,7 +156,17 @@ export default function Settings() {
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {AVAILABLE_MODELS.map((modelOption) => (
+                    <div className="text-xs font-semibold text-green-600 px-2 py-1">🆓 Free Models</div>
+                    {AVAILABLE_MODELS.filter(m => m.provider === 'google' || m.provider === 'groq').map((modelOption) => (
+                      <SelectItem
+                        key={modelOption.value}
+                        value={modelOption.value}
+                      >
+                        {modelOption.label}
+                      </SelectItem>
+                    ))}
+                    <div className="text-xs font-semibold text-orange-600 px-2 py-1 mt-2">💳 Paid Models</div>
+                    {AVAILABLE_MODELS.filter(m => m.provider === 'openai').map((modelOption) => (
                       <SelectItem
                         key={modelOption.value}
                         value={modelOption.value}
@@ -153,9 +176,21 @@ export default function Settings() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground">
-                  Different models offer varying levels of capability and speed
-                </p>
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-800 dark:text-green-200">
+                    <strong>✅ Recommended:</strong> Google Gemini 1.5 Flash - Free, fast, high-quality responses with generous rate limits (1M tokens/day).
+                  </p>
+                </div>
+                
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>💡 Trạng thái API:</strong>
+                    <br />• Google Gemini: ✅ Hoạt động (Free - 1M tokens/day)
+                    <br />• Groq: ✅ Hoạt động (Free - 14,400 requests/day) 
+                    <br />• OpenAI: ❌ Hết quota (Tùy chọn - có phí)
+                    <br />• Embeddings: ⚠️ Tắt (Dùng text search thay thế)
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">

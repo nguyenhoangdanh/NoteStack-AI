@@ -19,7 +19,7 @@ import {
   Folder,
 } from "lucide-react";
 import { useUIStore } from "../lib/store";
-import { useNotes, useCreateNote, useDefaultWorkspace } from "../lib/query";
+import { useNotes, useCreateNote, useDefaultWorkspace } from "../hooks/useApi";
 import { formatDistanceToNow } from "date-fns";
 
 export default function CommandPalette() {
@@ -34,9 +34,9 @@ export default function CommandPalette() {
     selectedWorkspaceId,
   } = useUIStore();
 
-  const defaultWorkspace = useDefaultWorkspace();
-  const currentWorkspaceId = selectedWorkspaceId || defaultWorkspace?._id;
-  const notes = useNotes(currentWorkspaceId);
+  const { data: defaultWorkspace } = useDefaultWorkspace();
+  const currentWorkspaceId = selectedWorkspaceId || defaultWorkspace?.id;
+  const { data: notes } = useNotes(currentWorkspaceId);
   const createNote = useCreateNote();
 
   useEffect(() => {
@@ -59,13 +59,13 @@ export default function CommandPalette() {
     if (!currentWorkspaceId) return;
 
     try {
-      const noteId = await createNote.mutateAsync({
+      const note = await createNote.mutateAsync({
         title: searchQuery || "Untitled Note",
         content: "",
         tags: [],
         workspaceId: currentWorkspaceId,
       });
-      setSelectedNoteId(noteId);
+      setSelectedNoteId(note.id);
       setCommandPaletteOpen(false);
       setSearchQuery("");
     } catch (error) {
@@ -74,7 +74,7 @@ export default function CommandPalette() {
   };
 
   const handleSelectNote = (noteId: string) => {
-    setSelectedNoteId(noteId as any);
+    setSelectedNoteId(noteId);
     setCommandPaletteOpen(false);
     setSearchQuery("");
   };
@@ -142,8 +142,8 @@ export default function CommandPalette() {
             <CommandGroup heading="Notes">
               {filteredNotes.slice(0, 8).map((note) => (
                 <CommandItem
-                  key={note._id}
-                  onSelect={() => handleSelectNote(note._id)}
+                  key={note.id}
+                  onSelect={() => handleSelectNote(note.id)}
                 >
                   <FileText className="mr-2 h-4 w-4" />
                   <div className="flex-1 min-w-0">

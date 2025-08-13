@@ -23,13 +23,13 @@
   "dependencies": {
     "@ai-sdk/openai": "^2.0.11",
     "@ai-sdk/react": "^2.0.11",
-    "@convex-dev/auth": "^0.0.88",
+    "@auth/core": "^0.37.2",
+    "@tanstack/react-query-devtools": "^5.85.0",
     "@tiptap/react": "^3.1.0",
     "@tiptap/starter-kit": "^3.1.0",
     "@types/markdown-it": "^14.1.2",
     "ai": "^5.0.11",
     "bcryptjs": "^3.0.2",
-    "convex": "^1.25.4",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "fuse.js": "^7.1.0",
@@ -113,7 +113,7 @@
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",
     "vaul": "^1.1.2",
-    "vite": "^7.1.2",
+    "vite": "^5.4.8",
     "vitest": "^3.2.4"
   },
   "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"

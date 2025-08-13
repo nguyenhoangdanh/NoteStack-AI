@@ -1,13 +1,12 @@
 # AI Notes - Intelligent Note-Taking App
 
-A production-ready AI-powered note-taking application built with React, Vite, Convex, and OpenAI. Features real-time synchronization, semantic search, and AI chat over your notes using RAG (Retrieval-Augmented Generation).
+A production-ready AI-powered note-taking application built with React, Vite, NestJS, and OpenAI. Features real-time synchronization, semantic search, and AI chat over your notes using RAG (Retrieval-Augmented Generation).
 
 ## ✨ Features
 
 - **Smart Markdown Editor**: Rich text editing with markdown support
 - **AI-Powered Search**: Semantic search through your notes using vector embeddings
 - **AI Chat**: Ask questions about your notes and get contextual answers
-- **Real-time Sync**: Notes sync instantly across all devices
 - **Google OAuth**: Secure authentication with Google
 - **File Import/Export**: Import .md/.txt files, export to markdown
 - **Keyboard Shortcuts**: Speed up your workflow with hotkeys
@@ -19,6 +18,7 @@ A production-ready AI-powered note-taking application built with React, Vite, Co
 ### Prerequisites
 
 - Node.js 18+
+- PostgreSQL database
 - pnpm (recommended) or npm
 - OpenAI API key
 - Google OAuth credentials
@@ -28,39 +28,50 @@ A production-ready AI-powered note-taking application built with React, Vite, Co
 ```bash
 git clone <your-repo-url>
 cd ai-notes
+
+# Install frontend dependencies
+cd frontend
+pnpm install
+
+# Install backend dependencies
+cd ../backend
 pnpm install
 ```
 
-### 2. Set up Convex
+### 2. Set up Database
 
 ```bash
-# Install Convex CLI globally
-npm install -g convex
+# Install PostgreSQL and create database
+createdb ai_notes
 
-# Initialize Convex project
-npx convex dev
-
-# Follow the prompts to create a new Convex project
+# Or use Docker
+docker run --name ai-notes-db -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres
 ```
 
-### 3. Configure Environment Variables
+### 3. Configure Backend Environment
 
-Create a `.env.local` file in the root directory:
+Create `backend/.env`:
 
 ```bash
-# Convex
-VITE_CONVEX_URL=https://your-project.convex.cloud
-CONVEX_DEPLOYMENT=your-deployment-name
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/ai_notes?schema=public"
 
-# OpenAI API
-OPENAI_API_KEY=sk-your-openai-api-key
+# JWT
+JWT_SECRET="your-super-secret-jwt-key-here"
+JWT_EXPIRES_IN="7d"
 
-# Google OAuth (for Convex Auth)
-AUTH_GOOGLE_ID=your-google-oauth-client-id.googleusercontent.com
-AUTH_GOOGLE_SECRET=your-google-oauth-client-secret
+# Google OAuth
+GOOGLE_CLIENT_ID="your-google-oauth-client-id.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
 
-# Auth Secret for JWT signing
-AUTH_SECRET=your-random-secret-key-here
+# OpenAI
+OPENAI_API_KEY="sk-your-openai-api-key"
+
+# App
+PORT=3001
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000
 ```
 
 ### 4. Set up Google OAuth
@@ -70,151 +81,148 @@ AUTH_SECRET=your-random-secret-key-here
 3. Enable the Google+ API
 4. Go to Credentials → Create Credentials → OAuth 2.0 Client IDs
 5. Set application type to "Web application"
-6. Add authorized JavaScript origins:
-   - `http://localhost:5173` (for development)
-   - `https://your-app.convex.site` (for production)
-7. Add authorized redirect URIs:
-   - `http://localhost:5173/api/auth/callback/google`
-   - `https://your-app.convex.site/api/auth/callback/google`
-8. Copy the Client ID and Client Secret to your `.env.local`
+6. Add authorized redirect URIs:
+   - `http://localhost:3001/auth/google/callback` (for development)
+   - `https://your-api.domain.com/auth/google/callback` (for production)
+7. Copy the Client ID and Client Secret to your `.env`
 
-### 5. Deploy Convex Functions
+### 5. Initialize Database
 
 ```bash
-npx convex deploy
+cd backend
+
+# Generate Prisma client
+pnpm prisma:generate
+
+# Push database schema
+pnpm prisma:push
+
+# Optional: View database in Prisma Studio
+pnpm prisma:studio
 ```
 
-### 6. Start Development Server
+### 6. Start Development Servers
 
 ```bash
+# Terminal 1: Start backend
+cd backend
+pnpm start:dev
+
+# Terminal 2: Start frontend
+cd frontend
 pnpm dev
 ```
 
-Visit `http://localhost:5173` to see your app!
+Visit `http://localhost:3000` to see your app!
 
 ## 📁 Project Structure
 
 ```
 ai-notes/
-├── client/                     # React frontend
-│   ├── components/            # Reusable UI components
-│   │   ├── ui/               # shadcn/ui components
-│   │   ├── NoteEditor.tsx    # Markdown editor
-│   │   ├── ChatPanel.tsx     # AI chat interface
-│   │   ├── SearchBar.tsx     # Search component
-│   │   └── Sidebar.tsx       # Navigation sidebar
-│   ├── hooks/                # Custom React hooks
-│   ├── lib/                  # Utilities and stores
-│   │   ├── store.ts          # Zustand state management
-│   │   ├── query.tsx         # React Query setup
-│   │   └── fileUtils.ts      # Import/export utilities
-│   ├── pages/                # Main application pages
-│   │   ├── Notes.tsx         # Main notes interface
-│   │   └── Settings.tsx      # Settings page
-│   └── App.tsx               # Root component
-├── convex/                    # Convex backend
-│   ├── auth.config.ts        # Authentication config
-│   ├── schema.ts             # Database schema
-│   ├── users.ts              # User management
-│   ├── notes.ts              # Notes CRUD operations
-│   ├── vectors.ts            # Vector/RAG operations
-│   ├── chat.ts               # AI chat endpoints
-│   ├── lib/
-│   │   └── rag.ts            # RAG utilities
-│   └── http.ts               # HTTP route handlers
-└── shared/                    # Shared types (if needed)
+├── frontend/                   # React frontend
+│   ├── src/
+│   │   ├── components/        # Reusable UI components
+│   │   ├── pages/            # Main application pages
+│   │   ├── hooks/            # Custom React hooks
+│   │   ├── lib/              # Utilities and stores
+│   │   └── App.tsx           # Root component
+│   └── package.json
+├── backend/                   # NestJS backend
+│   ├── src/
+│   │   ├── auth/             # Authentication module
+│   │   ├── notes/            # Notes CRUD operations
+│   │   ├── chat/             # AI chat endpoints
+│   │   ├── vectors/          # Vector/RAG operations
+│   │   ├── users/            # User management
+│   │   ├── workspaces/       # Workspace management
+│   │   ├── settings/         # User settings
+│   │   └── prisma/           # Database service
+│   ├── prisma/
+│   │   └── schema.prisma     # Database schema
+│   └── package.json
+└── README.md
 ```
 
 ## 🛠️ Development
 
-### Available Scripts
+### Backend Commands
 
 ```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm typecheck    # Run TypeScript checking
-pnpm test         # Run tests
+cd backend
+
+pnpm start:dev      # Start development server
+pnpm build          # Build for production
+pnpm start:prod     # Start production server
+pnpm test           # Run tests
+pnpm prisma:studio  # Open database GUI
 ```
 
-### Environment Setup
+### Frontend Commands
 
-For development, you'll need:
+```bash
+cd frontend
 
-1. **Convex Development Environment**:
-
-   ```bash
-   npx convex dev
-   ```
-
-2. **Vite Development Server**:
-   ```bash
-   pnpm dev
-   ```
-
-## 🔑 Configuration
-
-### Convex Auth Setup
-
-The app uses Convex Auth with Google OAuth. Make sure to:
-
-1. Configure your OAuth URLs correctly in Google Cloud Console
-2. Set the correct environment variables
-3. Deploy your auth configuration to Convex
-
-### OpenAI API Setup
-
-1. Get an API key from [OpenAI](https://platform.openai.com/api-keys)
-2. Add it to your `.env.local` file
-3. The app uses `text-embedding-3-small` for embeddings and configurable models for chat
-
-### Vector Search Configuration
-
-The app automatically:
-
-- Chunks notes into 300-600 token pieces
-- Generates embeddings using OpenAI
-- Stores vectors in Convex with user isolation
-- Performs semantic search with MMR re-ranking
+pnpm dev            # Start development server
+pnpm build          # Build for production
+pnpm preview        # Preview production build
+```
 
 ## 🚀 Deployment
 
-### Deploy to Convex
+### Backend Deployment
+
+1. **Environment Variables**: Set production environment variables
+2. **Database**: Set up PostgreSQL database
+3. **Deploy**: Use platforms like Railway, Heroku, or DigitalOcean
 
 ```bash
-# Build and deploy backend
-npx convex deploy --prod
-
-# Update environment variables for production
-npx convex env set OPENAI_API_KEY sk-your-production-key
-npx convex env set AUTH_GOOGLE_ID your-production-google-id
-npx convex env set AUTH_GOOGLE_SECRET your-production-google-secret
-npx convex env set AUTH_SECRET your-production-auth-secret
-```
-
-### Deploy Frontend
-
-The frontend can be deployed to any static hosting service:
-
-#### Netlify
-
-```bash
+# Build backend
+cd backend
 pnpm build
-# Upload dist/ folder to Netlify
+
+# Run migrations in production
+pnpm prisma:migrate
+
+# Start production server
+pnpm start:prod
 ```
 
-#### Vercel
+### Frontend Deployment
 
 ```bash
+cd frontend
 pnpm build
-# Deploy dist/ folder to Vercel
+# Deploy dist/ folder to Netlify, Vercel, etc.
 ```
 
-#### Convex Hosting
+## 🔑 API Endpoints
 
-```bash
-# Convex can host your frontend automatically
-npx convex deploy --prod
-```
+### Authentication
+- `GET /auth/google` - Initiate Google OAuth
+- `GET /auth/google/callback` - OAuth callback
+
+### Notes
+- `GET /notes` - List notes
+- `POST /notes` - Create note
+- `GET /notes/:id` - Get note
+- `PATCH /notes/:id` - Update note
+- `DELETE /notes/:id` - Delete note
+- `GET /notes/search?q=query` - Search notes
+
+### Chat
+- `POST /chat/stream` - Stream AI chat response
+- `POST /chat/complete` - Get complete AI response
+
+### Vectors
+- `POST /vectors/semantic-search` - Semantic search
+
+## 🔒 Security
+
+- JWT authentication with Google OAuth
+- Database queries filtered by user ID
+- Input validation and sanitization
+- CORS configuration
+- Rate limiting (recommended for production)
 
 ## ⌨️ Keyboard Shortcuts
 
@@ -226,26 +234,7 @@ npx convex deploy --prod
 | `Cmd/Ctrl + J` | Toggle chat panel       |
 | `Cmd/Ctrl + ,` | Open settings           |
 | `/`            | Quick search            |
-| `?`            | Show keyboard shortcuts |
 | `Esc`          | Close dialogs           |
-
-## 🔒 Security
-
-- All data is isolated by user ID
-- Google OAuth for secure authentication
-- Convex handles auth tokens and sessions
-- OpenAI API calls are server-side only
-- Input sanitization and validation throughout
-
-## 📊 Usage Analytics
-
-The app tracks:
-
-- Token usage for embeddings and chat
-- Daily usage statistics
-- Performance metrics
-
-Access usage data in Settings → Usage & Analytics.
 
 ## 🤝 Contributing
 
@@ -255,45 +244,33 @@ Access usage data in Settings → Usage & Analytics.
 4. Push to branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🔧 Troubleshooting
 
 ### Common Issues
 
-1. **"VITE_CONVEX_URL is not set"**
-   - Make sure you've run `npx convex dev` and copied the URL to `.env.local`
+1. **Database Connection Error**
+   - Check PostgreSQL is running
+   - Verify DATABASE_URL in `.env`
 
 2. **Google OAuth not working**
-   - Check your redirect URIs in Google Cloud Console
-   - Ensure AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET are correct
+   - Check redirect URIs in Google Cloud Console
+   - Verify GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET
 
 3. **OpenAI API errors**
-   - Verify your OPENAI_API_KEY is valid and has sufficient credits
-   - Check that you have access to the embedding models
+   - Verify OPENAI_API_KEY is valid
+   - Check API usage limits
 
-4. **Vector search not working**
-   - Make sure notes are being processed (check the auto-reembed setting)
-   - Verify embeddings are being generated (check usage analytics)
+4. **CORS errors**
+   - Ensure CORS_ORIGIN matches frontend URL
+   - Check frontend is making requests to correct backend URL
 
 ### Getting Help
 
-- Check the [Convex Documentation](https://docs.convex.dev/)
-- Review [OpenAI API Documentation](https://platform.openai.com/docs)
-- Open an issue on GitHub for bugs or feature requests
-
-## 🎯 Roadmap
-
-- [ ] PDF import support
-- [ ] Collaborative notes
-- [ ] Note sharing with public links
-- [ ] Mobile app (React Native)
-- [ ] Advanced AI features (summarization, etc.)
-- [ ] Integration with other note apps
-- [ ] Offline mode improvements
+- Check API documentation at `http://localhost:3001/api/docs`
+- Review [NestJS Documentation](https://docs.nestjs.com/)
+- Review [Prisma Documentation](https://www.prisma.io/docs)
+- Open an issue on GitHub
 
 ---
 
-Built with ���️ using React, Vite, Convex, and OpenAI.
+Built with ❤️ using React, NestJS, Prisma, and OpenAI.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -13,17 +13,14 @@ import {
 } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { Eye, EyeOff, LogIn, Mail, Lock, ArrowLeft } from "lucide-react";
-import { useConvexAuth } from "convex/react";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn } = useAuthActions();
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { login, googleLogin, isAuthenticated, isLoading, error } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if already authenticated
@@ -34,13 +31,10 @@ export default function Login() {
   }, [isAuthenticated, navigate]);
 
   const handleGoogleSignIn = async () => {
-    setError("");
     setIsSubmitting(true);
-
     try {
-      await signIn("google");
+      googleLogin(); // This will redirect to Google OAuth
     } catch (err) {
-      setError("Failed to sign in with Google. Please try again.");
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -49,15 +43,13 @@ export default function Login() {
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setIsSubmitting(true);
 
     try {
-      await signIn("password", { email, password });
-    } catch (err: any) {
-      setError(
-        err.message || "Failed to sign in. Please check your credentials.",
-      );
+      await login(email, password);
+      navigate("/notes");
+    } catch (err) {
+      console.error("Login error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -211,7 +203,7 @@ export default function Login() {
               <p className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
                 <Link
-                  to="/register"
+                  to="/signup"
                   className="font-medium text-primary hover:underline"
                 >
                   Sign up

@@ -23,14 +23,14 @@ import {
   useNotes,
   useDefaultWorkspace,
   useProcessNoteForRAG,
-} from "../lib/query";
+} from "../hooks/useApi";
 import {
   importMultipleFiles,
   exportAllNotes,
   exportSingleNote,
   type ImportedFile,
-} from "../lib/fileUtils";
-import { cn } from "../lib/utils";
+} from "@/lib/fileUtils";
+import { cn } from "@/lib/utils";
 
 interface ImportExportProps {
   className?: string;
@@ -45,8 +45,8 @@ export default function ImportExport({ className }: ImportExportProps) {
   } | null>(null);
   const [importProgress, setImportProgress] = useState(0);
 
-  const defaultWorkspace = useDefaultWorkspace();
-  const notes = useNotes(defaultWorkspace?._id);
+  const { data: defaultWorkspace } = useDefaultWorkspace();
+  const { data: notes } = useNotes(defaultWorkspace?.id);
   const createNote = useCreateNote();
   const processNoteForRAG = useProcessNoteForRAG();
 
@@ -76,15 +76,15 @@ export default function ImportExport({ className }: ImportExportProps) {
       for (let i = 0; i < importedFiles.length; i++) {
         const file = importedFiles[i];
         try {
-          const noteId = await createNote.mutateAsync({
+          const note = await createNote.mutateAsync({
             title: file.title,
             content: file.content,
             tags: file.tags,
-            workspaceId: defaultWorkspace._id,
+            workspaceId: defaultWorkspace.id,
           });
 
           // Process for RAG in background
-          processNoteForRAG.mutate(noteId);
+          processNoteForRAG.mutate(note.id);
 
           results.success.push(file);
         } catch (error) {
@@ -113,12 +113,26 @@ export default function ImportExport({ className }: ImportExportProps) {
 
   const handleExportAll = () => {
     if (notes && notes.length > 0) {
-      exportAllNotes(notes);
+      const exportNotes = notes.map(note => ({
+        title: note.title,
+        content: note.content,
+        tags: note.tags,
+        createdAt: new Date(note.createdAt).getTime(),
+        updatedAt: new Date(note.updatedAt).getTime(),
+      }));
+      exportAllNotes(exportNotes);
     }
   };
 
   const handleExportSingle = (note: any) => {
-    exportSingleNote(note);
+    const exportNote = {
+      title: note.title,
+      content: note.content,
+      tags: note.tags,
+      createdAt: new Date(note.createdAt).getTime(),
+      updatedAt: new Date(note.updatedAt).getTime(),
+    };
+    exportSingleNote(exportNote);
   };
 
   return (
@@ -264,7 +278,7 @@ export default function ImportExport({ className }: ImportExportProps) {
               <div className="max-h-48 overflow-y-auto space-y-1">
                 {notes.slice(0, 10).map((note) => (
                   <div
-                    key={note._id}
+                    key={note.id}
                     className="flex items-center justify-between p-2 rounded border"
                   >
                     <div className="flex-1 min-w-0">

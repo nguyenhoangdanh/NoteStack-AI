@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -21,12 +21,10 @@ import {
   User,
   ArrowLeft,
 } from "lucide-react";
-import { useConvexAuth } from "convex/react";
 
 export default function Register() {
   const navigate = useNavigate();
-  const { signIn } = useAuthActions();
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { register, googleLogin, isAuthenticated, isLoading, error } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,7 +32,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [localError, setLocalError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if already authenticated
@@ -45,13 +43,12 @@ export default function Register() {
   }, [isAuthenticated, navigate]);
 
   const handleGoogleSignUp = async () => {
-    setError("");
+    setLocalError("");
     setIsSubmitting(true);
 
     try {
-      await signIn("google");
+      googleLogin(); // This will redirect to Google OAuth
     } catch (err) {
-      setError("Failed to sign up with Google. Please try again.");
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -60,29 +57,29 @@ export default function Register() {
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setLocalError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setLocalError("Passwords do not match");
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
+    if (password.length < 6) {
+      setLocalError("Password must be at least 6 characters long");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await signIn("password", {
+      await register({
+        name,
         email,
         password,
-        name,
-        flow: "signUp",
       });
-    } catch (err: any) {
-      setError(err.message || "Failed to create account. Please try again.");
+      navigate("/notes");
+    } catch (err) {
+      console.error("Registration error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -95,6 +92,8 @@ export default function Register() {
       </div>
     );
   }
+
+  const displayError = localError || error;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
@@ -130,9 +129,9 @@ export default function Register() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {error && (
+            {displayError && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{displayError}</AlertDescription>
               </Alert>
             )}
 
@@ -216,7 +215,7 @@ export default function Register() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Create a password (min. 8 characters)"
+                    placeholder="Create a password (min. 6 characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"

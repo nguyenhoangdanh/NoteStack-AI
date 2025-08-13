@@ -4,11 +4,10 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { cn } from "../lib/utils";
-import { useSearchNotes } from "../lib/query";
+import { useSearchNotes, useSemanticSearch } from "../hooks/useApi";
 import { useUIStore } from "../lib/store";
 import { useChatStore } from "../lib/store";
-import type { Id } from "../../convex/_generated/dataModel";
+import { cn } from "../lib/utils";
 
 interface SearchBarProps {
   className?: string;
@@ -23,14 +22,19 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [searchType, setSearchType] = useState<"text" | "semantic">("text");
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const { setSelectedNoteId, setChatOpen, setCommandPaletteOpen } =
-    useUIStore();
+  const { setSelectedNoteId, setChatOpen, setCommandPaletteOpen } = useUIStore();
   const { setInput, addMessage } = useChatStore();
 
-  const searchResults = useSearchNotes(query);
+  const { data: textResults } = useSearchNotes(
+    { q: query }, 
+    query.trim().length > 0 && searchType === "text"
+  );
+  
+  const semanticSearch = useSemanticSearch();
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
@@ -58,9 +62,19 @@ export default function SearchBar({
     const value = e.target.value;
     setQuery(value);
     setIsOpen(value.length > 0);
+    
+    // Switch to semantic search for longer queries
+    if (value.length > 10) {
+      setSearchType("semantic");
+      if (value.trim()) {
+        semanticSearch.mutate({ query: value.trim() });
+      }
+    } else {
+      setSearchType("text");
+    }
   };
 
-  const handleSelectNote = (noteId: Id<"notes">) => {
+  const handleSelectNote = (noteId: string) => {
     setSelectedNoteId(noteId);
     setQuery("");
     setIsOpen(false);
@@ -88,8 +102,16 @@ export default function SearchBar({
       setCommandPaletteOpen(false);
     } else if (e.key === "Enter" && query.trim()) {
       e.preventDefault();
-      if (searchResults && searchResults.length > 0) {
-        handleSelectNote(searchResults[0]._id);
+      const results = searchType === "semantic" && semanticSearch.data 
+        ? semanticSearch.data 
+        : textResults;
+      
+      if (results && results.length > 0) {
+        // Handle both text and semantic search results
+        const firstResult = searchType === "semantic" && semanticSearch.data 
+          ? semanticSearch.data[0].noteId  // Use noteId for semantic results
+          : (results as any[])[0].id;      // Use id for text results
+        handleSelectNote(firstResult);
       } else {
         handleAskQuestion();
       }
@@ -102,22 +124,22 @@ export default function SearchBar({
     inputRef.current?.focus();
   };
 
-  const highlightMatch = (text: string, query: string) => {
-    if (!query) return text;
-
-    const regex = new RegExp(`(${query})`, "gi");
-    const parts = text.split(regex);
-
-    return parts.map((part, index) =>
-      regex.test(part) ? (
-        <mark key={index} className="bg-yellow-200 dark:bg-yellow-800">
-          {part}
-        </mark>
-      ) : (
-        part
-      ),
-    );
+  const getSearchResults = () => {
+    if (searchType === "semantic" && semanticSearch.data) {
+      return semanticSearch.data.map(result => ({
+        id: result.noteId, // Use noteId from semantic search result
+        title: result.noteTitle,
+        content: result.chunkContent,
+        tags: [],
+        heading: result.heading,
+        similarity: result.similarity,
+      }));
+    }
+    // For text search, notes already have the correct structure
+    return textResults || [];
   };
+
+  const searchResults = getSearchResults();
 
   return (
     <div className={cn("relative", className)}>
@@ -151,45 +173,43 @@ export default function SearchBar({
           className="absolute top-full left-0 right-0 mt-2 max-h-96 overflow-auto z-50 shadow-lg"
         >
           <div className="p-2">
-            {searchResults && searchResults.length > 0 ? (
+            {/* Search type indicator */}
+            <div className="flex items-center gap-2 px-2 py-1 mb-2">
+              <Badge variant={searchType === "text" ? "default" : "secondary"} className="text-xs">
+                Text Search
+              </Badge>
+              <Badge variant={searchType === "semantic" ? "default" : "secondary"} className="text-xs">
+                Semantic Search
+              </Badge>
+              {semanticSearch.isPending && (
+                <span className="text-xs text-muted-foreground">Searching...</span>
+              )}
+            </div>
+
+            {searchResults.length > 0 ? (
               <>
                 <div className="space-y-1">
-                  {searchResults.map((note) => (
+                  {searchResults.map((result, index) => (
                     <div
-                      key={note._id}
-                      onClick={() => handleSelectNote(note._id)}
+                      key={result.id + index}
+                      onClick={() => handleSelectNote(result.id)}
                       className="flex items-start gap-3 p-3 rounded-md hover:bg-muted cursor-pointer"
                     >
                       <FileText className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm truncate">
-                          {highlightMatch(note.title, query)}
+                          {result.title}
+                          {result.heading && (
+                            <span className="text-muted-foreground">{' > '}{result.heading}</span>
+                          )}
                         </div>
                         <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {highlightMatch(
-                            note.content
-                              .replace(/<[^>]*>/g, "")
-                              .substring(0, 100),
-                            query,
-                          )}
-                          {note.content.length > 100 && "..."}
+                          {result.content.substring(0, 150)}
+                          {result.content.length > 150 && "..."}
                         </div>
-                        {note.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {note.tags.slice(0, 3).map((tag) => (
-                              <Badge
-                                key={tag}
-                                variant="secondary"
-                                className="text-xs"
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                            {note.tags.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{note.tags.length - 3}
-                              </Badge>
-                            )}
+                        {result.similarity && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Similarity: {Math.round(result.similarity * 100)}%
                           </div>
                         )}
                       </div>
@@ -209,25 +229,23 @@ export default function SearchBar({
                         Ask my notes: "{query}"
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Use AI to search through your notes semantically
+                        Use AI to get answers from your notes
                       </div>
                     </div>
                   </div>
                 </div>
               </>
-            ) : query.length > 0 ? (
-              <div className="p-4 text-center">
-                <div className="text-sm text-muted-foreground mb-3">
-                  No notes found for "{query}"
-                </div>
+            ) : query.length > 0 && !semanticSearch.isPending ? (
+              <div className="p-4 text-center text-muted-foreground">
+                <p className="text-sm mb-2">No notes found for "{query}"</p>
                 <Button
-                  onClick={handleAskQuestion}
                   variant="outline"
                   size="sm"
-                  className="w-full"
+                  onClick={handleAskQuestion}
+                  className="text-xs"
                 >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Ask my notes instead
+                  <MessageSquare className="w-3 h-3 mr-1" />
+                  Ask AI about this
                 </Button>
               </div>
             ) : null}

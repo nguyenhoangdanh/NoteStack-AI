@@ -1,18 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Id } from "../../convex/_generated/dataModel";
-
-interface Note {
-  _id: Id<"notes">;
-  title: string;
-  content: string;
-  tags: string[];
-  workspaceId: Id<"workspaces">;
-  ownerId: Id<"users">;
-  isDeleted: boolean;
-  createdAt: number;
-  updatedAt: number;
-}
+import { Message, Citation } from "../types/api.types";
 
 interface UIState {
   // Sidebar state
@@ -20,8 +8,8 @@ interface UIState {
   chatOpen: boolean;
 
   // Current selections
-  selectedNoteId: Id<"notes"> | null;
-  selectedWorkspaceId: Id<"workspaces"> | null;
+  selectedNoteId: string | null;
+  selectedWorkspaceId: string | null;
 
   // Search and filters
   searchQuery: string;
@@ -40,8 +28,8 @@ interface UIState {
   // Actions
   setSidebarOpen: (open: boolean) => void;
   setChatOpen: (open: boolean) => void;
-  setSelectedNoteId: (id: Id<"notes"> | null) => void;
-  setSelectedWorkspaceId: (id: Id<"workspaces"> | null) => void;
+  setSelectedNoteId: (id: string | null) => void;
+  setSelectedWorkspaceId: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setSelectedTags: (tags: string[]) => void;
   toggleTag: (tag: string) => void;
@@ -131,21 +119,14 @@ export const useUIStore = create<UIState>()(
 
 // Chat state (separate store for better performance)
 interface ChatState {
-  messages: Array<{
-    id: string;
-    role: "user" | "assistant";
-    content: string;
-    citations?: Array<{ title: string; heading?: string }>;
-    timestamp: number;
-  }>;
+  messages: Message[];
   isLoading: boolean;
   input: string;
 
   // Actions
   setInput: (input: string) => void;
-  addMessage: (
-    message: Omit<ChatState["messages"][0], "id" | "timestamp">,
-  ) => void;
+  addMessage: (message: Omit<Message, "id" | "timestamp">) => void;
+  updateLastMessage: (content: string) => void; // Add this method
   setLoading: (loading: boolean) => void;
   clearMessages: () => void;
 }
@@ -169,29 +150,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
       ],
     })),
 
+  updateLastMessage: (content) =>
+    set((state) => {
+      const messages = [...state.messages];
+      if (messages.length > 0) {
+        const lastIndex = messages.length - 1;
+        messages[lastIndex] = {
+          ...messages[lastIndex],
+          content,
+        };
+      }
+      return { messages };
+    }),
+
   setLoading: (loading) => set({ isLoading: loading }),
 
   clearMessages: () => set({ messages: [] }),
-}));
-
-// Keyboard shortcuts store
-interface KeyboardState {
-  shortcuts: Record<string, () => void>;
-  registerShortcut: (key: string, callback: () => void) => void;
-  unregisterShortcut: (key: string) => void;
-}
-
-export const useKeyboardStore = create<KeyboardState>((set, get) => ({
-  shortcuts: {},
-
-  registerShortcut: (key, callback) =>
-    set((state) => ({
-      shortcuts: { ...state.shortcuts, [key]: callback },
-    })),
-
-  unregisterShortcut: (key) =>
-    set((state) => {
-      const { [key]: deleted, ...rest } = state.shortcuts;
-      return { shortcuts: rest };
-    }),
 }));

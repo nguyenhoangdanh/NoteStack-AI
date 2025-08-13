@@ -65,7 +65,7 @@ export function parseMarkdownFile(
   }
 
   // Look for inline tags (e.g., #tag)
-  const inlineTags = content.match(/#[\w-]+/g) || [];
+  const inlineTags: string[] = content.match(/#[\w-]+/g) || [];
   inlineTags.forEach((tag) => {
     const cleanTag = tag.substring(1); // Remove #
     if (!tags.includes(cleanTag)) {

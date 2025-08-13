@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useChat } from "@ai-sdk/react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
@@ -14,12 +13,12 @@ import {
   Trash2,
   Settings,
 } from "lucide-react";
-import { cn } from "../lib/utils";
 import { useChatStore, useUIStore } from "../lib/store";
-import { useSettings } from "../lib/query";
+import { useChatStream, useSettings } from "../hooks/useApi";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { cn } from "../lib/utils";
 
 interface ChatPanelProps {
   className?: string;
@@ -41,94 +40,142 @@ export default function ChatPanel({ className }: ChatPanelProps) {
     input,
     setInput,
     addMessage,
+    updateLastMessage, // Use the new method
     setLoading,
     clearMessages,
   } = useChatStore();
   const { setSelectedNoteId, setSettingsOpen } = useUIStore();
-  const settings = useSettings();
-
-  // Use Vercel AI SDK for streaming
-  const {
-    messages: streamMessages,
-    input: streamInput,
-    handleInputChange,
-    handleSubmit,
-    isLoading: streamLoading,
-    error,
-    setMessages,
-  } = useChat({
-    api: "/api/chat/stream",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    onResponse: (response) => {
-      // Extract citations from response headers
-      const citationsHeader = response.headers.get("X-Citations");
-      if (citationsHeader) {
-        try {
-          const citations = JSON.parse(citationsHeader);
-          // Store citations with the message (handled in onFinish)
-        } catch (e) {
-          console.error("Failed to parse citations:", e);
-        }
-      }
-    },
-    onFinish: (message) => {
-      // Message is automatically added to streamMessages by useChat
-      setLoading(false);
-    },
-    onError: (error) => {
-      console.error("Chat error:", error);
-      setLoading(false);
-    },
-  });
+  const { data: settings } = useSettings();
+  const chatStream = useChatStream();
 
   // Sync with local chat store
   useEffect(() => {
-    if (input && input !== streamInput) {
+    if (input && input !== localInput) {
       setLocalInput(input);
       setInput(""); // Clear the store input
     }
-  }, [input, streamInput, setInput]);
+  }, [input, localInput, setInput]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
     }
-  }, [streamMessages, isLoading, streamLoading]);
+  }, [messages, isLoading]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!localInput.trim() || streamLoading) return;
+    if (!localInput.trim() || isLoading) return;
 
     setLoading(true);
 
-    // Add user message to local store
-    addMessage({
-      role: "user",
+    // Add user message
+    const userMessage = {
+      role: "user" as const,
       content: localInput.trim(),
-    });
+    };
+    addMessage(userMessage);
 
-    // Handle the streaming request
-    handleSubmit(e);
+    const query = localInput.trim();
     setLocalInput("");
+
+    try {
+      console.log('🚀 Sending chat request:', query);
+      
+      const response = await chatStream.mutateAsync(query);
+      const { stream, citations } = response;
+      
+      console.log('📡 Received stream response, citations:', citations.length);
+      
+      // Add assistant message placeholder
+      addMessage({
+        role: "assistant" as const,
+        content: "",
+        citations,
+      });
+
+      // Process the stream
+      let assistantContent = "";
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+            console.log('✅ Stream completed, final content length:', assistantContent.length);
+            break;
+          }
+          
+          // Decode chunk and add to content
+          const chunk = decoder.decode(value, { stream: true });
+          
+          if (chunk) {
+            assistantContent += chunk;
+            console.log('📝 Updating content, total length:', assistantContent.length);
+            
+            // Update the last message in real-time
+            updateLastMessage(assistantContent);
+          }
+        }
+        
+        // Ensure final update
+        if (assistantContent) {
+          updateLastMessage(assistantContent);
+        }
+        
+      } catch (streamError) {
+        console.error('❌ Stream processing error:', streamError);
+        
+        if (!assistantContent) {
+          // If no content was received, show fallback
+          updateLastMessage("Xin lỗi, tôi gặp lỗi khi xử lý phản hồi. Vui lòng thử lại.");
+        }
+      } finally {
+        reader.releaseLock();
+      }
+      
+    } catch (error) {
+      console.error('❌ Chat request failed:', error);
+      
+      let errorMessage = "Xin lỗi, tôi gặp lỗi khi xử lý yêu cầu của bạn.";
+      
+      // Handle specific errors
+      if (error.message?.includes('quota') || error.message?.includes('429')) {
+        errorMessage = "⚠️ Dịch vụ AI hiện không khả dụng do giới hạn quota. Đang sử dụng Google Gemini (miễn phí).";
+      } else if (error.message?.includes('401')) {
+        errorMessage = "🔒 Lỗi xác thực dịch vụ AI. Vui lòng kiểm tra cài đặt API key.";
+      } else if (error.message?.includes('Network')) {
+        errorMessage = "🌐 Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.";
+      }
+      
+      addMessage({
+        role: "assistant",
+        content: `${errorMessage}\n\n**💡 Gợi ý:** Bạn vẫn có thể tìm kiếm ghi chú bằng thanh tìm kiếm phía trên hoặc thử lại sau ít phút.`,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCopyMessage = (content: string) => {
     navigator.clipboard.writeText(content);
-    // Could add a toast notification here
+    // You could add a toast notification here
   };
 
   const handleClearChat = () => {
-    clearMessages();
-    setMessages([]);
+    if (confirm("Are you sure you want to clear the chat history?")) {
+      clearMessages();
+    }
   };
 
   const handleOpenNote = (noteTitle: string) => {
-    // This would need to search for the note by title and open it
-    // For now, we'll just log it
+    // This would need to be implemented to search and open the note
     console.log("Open note:", noteTitle);
   };
 
@@ -138,8 +185,8 @@ export default function ChatPanel({ className }: ChatPanelProps) {
 
     return (
       <div
-        key={index}
-        className={cn("flex gap-3 p-4", isUser ? "bg-muted/50" : "")}
+        key={message.id || index}
+        className={cn("group flex gap-3 p-4", isUser ? "bg-muted/50" : "")}
       >
         <div
           className={cn(
@@ -154,14 +201,15 @@ export default function ChatPanel({ className }: ChatPanelProps) {
           <div className="prose prose-sm max-w-none dark:prose-invert">
             <ReactMarkdown
               components={{
-                code({ node, inline, className, children, ...props }) {
+                code: ({ children, className, ...props }) => {
                   const match = /language-(\w+)/.exec(className || "");
-                  return !inline && match ? (
+                  const isInline = !match;
+                  
+                  return !isInline && match ? (
                     <SyntaxHighlighter
-                      style={tomorrow}
+                      style={tomorrow as any}
                       language={match[1]}
                       PreTag="div"
-                      {...props}
                     >
                       {String(children).replace(/\n$/, "")}
                     </SyntaxHighlighter>
@@ -221,12 +269,15 @@ export default function ChatPanel({ className }: ChatPanelProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div>
-          <h3 className="font-semibold">Ask My Notes</h3>
+          <h3 className="font-semibold">💬 Hỏi đáp với Ghi chú</h3>
           <p className="text-sm text-muted-foreground">
-            AI-powered search through your notes
+            AI tìm kiếm và trả lời từ ghi chú của bạn
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            Gemini 1.5 Flash
+          </Badge>
           <Button
             variant="ghost"
             size="sm"
@@ -238,7 +289,7 @@ export default function ChatPanel({ className }: ChatPanelProps) {
             variant="ghost"
             size="sm"
             onClick={handleClearChat}
-            disabled={streamMessages.length === 0}
+            disabled={messages.length === 0}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -248,31 +299,36 @@ export default function ChatPanel({ className }: ChatPanelProps) {
       {/* Messages */}
       <ScrollArea className="flex-1 p-0" ref={scrollAreaRef}>
         <div className="min-h-full">
-          {streamMessages.length === 0 ? (
+          {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full p-8">
               <div className="text-center space-y-4">
                 <Bot className="w-12 h-12 mx-auto text-muted-foreground" />
                 <div>
-                  <h4 className="font-medium">Start a conversation</h4>
+                  <h4 className="font-medium">🤖 Trợ lý AI Notes</h4>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Ask questions about your notes and I'll search through them
-                    to help you find answers.
+                    Hỏi tôi bất cứ điều gì về ghi chú của bạn, tôi sẽ tìm kiếm và trả lời với trích dẫn rõ ràng.
                   </p>
                 </div>
                 <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>Try asking:</p>
-                  <ul className="space-y-1">
-                    <li>"What did I write about machine learning?"</li>
-                    <li>"Summarize my project ideas"</li>
-                    <li>"Find notes about productivity tips"</li>
+                  <p>💡 Thử hỏi:</p>
+                  <ul className="space-y-1 text-left">
+                    <li>• "Tôi đã viết gì về machine learning?"</li>
+                    <li>• "Tóm tắt các ý tưởng dự án của tôi"</li>
+                    <li>• "Tìm ghi chú về tips năng suất"</li>
+                    <li>• "Mô tả hôm nay đã học được gì?"</li>
                   </ul>
+                </div>
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-xs text-green-800 dark:text-green-200">
+                    <strong>✅ Đang sử dụng:</strong> Google Gemini 1.5 Flash (Miễn phí) - Nhanh, thông minh và không giới hạn!
+                  </p>
                 </div>
               </div>
             </div>
           ) : (
             <div className="space-y-0">
-              {streamMessages.map(renderMessage)}
-              {(streamLoading || isLoading) && (
+              {messages.map(renderMessage)}
+              {isLoading && (
                 <div className="flex gap-3 p-4">
                   <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
                     <Bot className="w-4 h-4" />
@@ -304,28 +360,23 @@ export default function ChatPanel({ className }: ChatPanelProps) {
             ref={inputRef}
             value={localInput}
             onChange={(e) => setLocalInput(e.target.value)}
-            placeholder="Ask a question about your notes..."
-            disabled={streamLoading || isLoading}
+            placeholder="Hỏi tôi bất cứ điều gì về ghi chú của bạn..."
+            disabled={isLoading}
             className="flex-1"
           />
           <Button
             type="submit"
-            disabled={!localInput.trim() || streamLoading || isLoading}
+            disabled={!localInput.trim() || isLoading}
             size="sm"
           >
             <Send className="w-4 h-4" />
           </Button>
         </form>
 
-        {error && (
-          <div className="mt-2 text-sm text-destructive">
-            Error: {error.message}
-          </div>
-        )}
-
         {settings && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            Using {settings.model} • Max {settings.maxTokens} tokens
+          <div className="mt-2 text-xs text-muted-foreground flex items-center justify-between">
+            <span>🔥 {settings.model} • Tối đa {settings.maxTokens} tokens</span>
+            <span>🆓 Miễn phí hoàn toàn</span>
           </div>
         )}
       </div>

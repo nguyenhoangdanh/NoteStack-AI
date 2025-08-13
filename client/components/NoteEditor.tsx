@@ -15,19 +15,24 @@ import {
   Tag,
   X,
   Plus,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "../lib/utils";
-import { useUpdateNote, useProcessNoteForRAG, useSettings } from "../lib/query";
+import {
+  useUpdateNote,
+  useProcessNoteForRAG,
+  useSettings,
+} from "../hooks/useApi";
 import { useUIStore } from "../lib/store";
-import { toastMessages } from "../lib/toast";
-import type { Id } from "../../convex/_generated/dataModel";
+import AISuggestionPanel from "./AISuggestionPanel";
 
 interface NoteEditorProps {
   note: {
-    _id: Id<"notes">;
+    id: string;
     title: string;
     content: string;
     tags: string[];
+    updatedAt: string;
   } | null;
   className?: string;
 }
@@ -37,11 +42,13 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedText, setSelectedText] = useState<string>("");
 
   const { saveDraft, getDraft, deleteDraft } = useUIStore();
   const updateNote = useUpdateNote();
   const processNoteForRAG = useProcessNoteForRAG();
-  const settings = useSettings();
+  const { data: settings } = useSettings();
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -55,16 +62,54 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
     onUpdate: ({ editor }) => {
       setHasUnsavedChanges(true);
       if (note) {
-        saveDraft(note._id, title, editor.getHTML());
+        saveDraft(note.id, title, editor.getHTML());
       }
     },
   });
 
+  const handleSave = useCallback(async () => {
+    if (!note || !editor) return;
+
+    const content = editor.getHTML();
+
+    try {
+      await updateNote.mutateAsync({
+        id: note.id,
+        title,
+        content,
+        tags,
+      });
+
+      // Process for RAG if auto-reembed is enabled
+      if (settings?.autoReembed) {
+        processNoteForRAG.mutate(note.id);
+      }
+
+      setHasUnsavedChanges(false);
+      deleteDraft(note.id);
+      // Show success message
+      console.log("Note saved successfully");
+    } catch (error) {
+      console.error("Failed to save note:", error);
+      // Show error message
+      console.error("Failed to save note");
+    }
+  }, [
+    note,
+    editor,
+    title,
+    tags,
+    updateNote,
+    processNoteForRAG,
+    settings,
+    deleteDraft,
+  ]);
+
   // Load note content
   useEffect(() => {
     if (note) {
-      const draft = getDraft(note._id);
-      if (draft && draft.lastSaved > note.updatedAt) {
+      const draft = getDraft(note.id);
+      if (draft && draft.lastSaved > new Date(note.updatedAt).getTime()) {
         // Use draft if it's newer
         setTitle(draft.title);
         editor?.commands.setContent(draft.content);
@@ -94,42 +139,6 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
     return () => window.removeEventListener("save-note", handleSaveShortcut);
   }, [hasUnsavedChanges, handleSave]);
 
-  const handleSave = useCallback(async () => {
-    if (!note || !editor) return;
-
-    const content = editor.getHTML();
-
-    try {
-      await updateNote.mutateAsync({
-        id: note._id,
-        title,
-        content,
-        tags,
-      });
-
-      // Process for RAG if auto-reembed is enabled
-      if (settings?.autoReembed) {
-        processNoteForRAG.mutate(note._id);
-      }
-
-      setHasUnsavedChanges(false);
-      deleteDraft(note._id);
-      toastMessages.noteSaved();
-    } catch (error) {
-      console.error("Failed to save note:", error);
-      toastMessages.saveError();
-    }
-  }, [
-    note,
-    editor,
-    title,
-    tags,
-    updateNote,
-    processNoteForRAG,
-    settings,
-    deleteDraft,
-  ]);
-
   const handleAddTag = useCallback(() => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
       setTags([...tags, newTag.trim()]);
@@ -155,6 +164,37 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
     },
     [handleAddTag],
   );
+
+  const handleTextSelection = useCallback(() => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      setSelectedText(selection.toString().trim());
+    }
+  }, []);
+
+  const handleApplySuggestion = useCallback(
+    (newContent: string, type: string) => {
+      editor?.commands.setContent(newContent);
+      setHasUnsavedChanges(true);
+      setShowSuggestions(false);
+      setSelectedText("");
+    },
+    [editor],
+  );
+
+  // Add text selection listener
+  useEffect(() => {
+    const editorElement = editor?.view?.dom;
+    if (editorElement) {
+      editorElement.addEventListener("mouseup", handleTextSelection);
+      editorElement.addEventListener("keyup", handleTextSelection);
+
+      return () => {
+        editorElement.removeEventListener("mouseup", handleTextSelection);
+        editorElement.removeEventListener("keyup", handleTextSelection);
+      };
+    }
+  }, [editor, handleTextSelection]);
 
   if (!note) {
     return (
@@ -189,6 +229,22 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
             className="text-lg font-semibold border-none bg-transparent px-0 focus-visible:ring-0"
           />
           <div className="flex items-center gap-2">
+            {/* AI Suggestions Button */}
+            <Button
+              onClick={() => setShowSuggestions(!showSuggestions)}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Lightbulb className="w-4 h-4" />
+              AI Suggestions
+              {selectedText && (
+                <Badge variant="secondary" className="text-xs ml-1">
+                  Selected
+                </Badge>
+              )}
+            </Button>
+
             {hasUnsavedChanges && (
               <Badge variant="secondary" className="text-xs">
                 Unsaved changes
@@ -308,6 +364,19 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
           </Button>
         </div>
       </div>
+
+      {/* AI Suggestions Panel */}
+      {showSuggestions && note && (
+        <div className="border-b p-4 bg-muted/30">
+          <AISuggestionPanel
+            noteId={note.id}
+            content={editor?.getHTML() || note.content}
+            selectedText={selectedText}
+            onApplySuggestion={handleApplySuggestion}
+            onClose={() => setShowSuggestions(false)}
+          />
+        </div>
+      )}
 
       {/* Editor */}
       <div className="flex-1 overflow-auto">
