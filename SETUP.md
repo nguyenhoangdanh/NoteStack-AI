@@ -3,11 +3,13 @@
 ## Quick Setup (5 minutes)
 
 ### 1. Install Dependencies
+
 ```bash
 pnpm install
 ```
 
 ### 2. Set up Convex
+
 ```bash
 # Install Convex CLI
 npm install -g convex
@@ -17,6 +19,7 @@ npx convex dev
 ```
 
 ### 3. Configure Environment Variables
+
 After running `npx convex dev`, copy your Convex URL and update `.env.local`:
 
 ```bash
@@ -32,6 +35,7 @@ AUTH_GOOGLE_SECRET=your-google-client-secret
 ```
 
 ### 4. Start Development
+
 ```bash
 # In one terminal: Start Convex
 npx convex dev
@@ -57,6 +61,7 @@ pnpm dev
 
 1. Get API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 2. Add to your Convex environment:
+
 ```bash
 npx convex env set OPENAI_API_KEY sk-your-key-here
 ```
@@ -64,6 +69,7 @@ npx convex env set OPENAI_API_KEY sk-your-key-here
 ## Features Available
 
 ### ✅ Currently Working
+
 - **User Authentication**: Google OAuth + Email/Password via Convex Auth
 - **Notes Management**: Create, edit, delete notes with real-time sync
 - **Workspaces**: Automatic workspace creation for new users
@@ -73,6 +79,7 @@ npx convex env set OPENAI_API_KEY sk-your-key-here
 - **Auto-save**: Changes are saved automatically
 
 ### 🔄 Coming Soon (requires OpenAI setup)
+
 - **AI Chat**: Ask questions about your notes
 - **Semantic Search**: Vector-based search through note content
 - **Smart Summaries**: AI-generated note summaries
@@ -81,6 +88,7 @@ npx convex env set OPENAI_API_KEY sk-your-key-here
 ## Deployment
 
 ### Deploy to Production
+
 ```bash
 # Deploy Convex functions
 npx convex deploy --prod
@@ -92,7 +100,9 @@ pnpm build
 ```
 
 ### Environment Variables for Production
+
 Set these in your Convex production environment:
+
 ```bash
 npx convex env set OPENAI_API_KEY sk-your-production-key --prod
 npx convex env set AUTH_GOOGLE_ID your-production-google-id --prod
@@ -102,13 +112,16 @@ npx convex env set AUTH_GOOGLE_SECRET your-production-secret --prod
 ## Troubleshooting
 
 ### "VITE_CONVEX_URL is not set"
+
 - Make sure you've run `npx convex dev` and copied the URL to `.env.local`
 
 ### Authentication not working
+
 - Check your Google OAuth configuration
 - Verify redirect URIs match your domain exactly
 
 ### AI features not working
+
 - Ensure `OPENAI_API_KEY` is set in your Convex environment
 - Check your OpenAI account has sufficient credits
 

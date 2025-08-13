@@ -6,18 +6,28 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../components/ui/resizable";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "../components/ui/resizable";
 import { ScrollArea } from "../components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { 
-  PanelLeftClose, 
-  PanelLeftOpen, 
-  Plus, 
-  Search, 
-  FileText, 
-  MessageSquare, 
+import {
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
+  Search,
+  FileText,
+  MessageSquare,
   Settings,
   Tag,
   Send,
@@ -25,7 +35,7 @@ import {
   Bot,
   Save,
   LogOut,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -35,7 +45,8 @@ const demoNotes = [
   {
     _id: "demo1" as Id<"notes">,
     title: "Welcome to AI Notes!",
-    content: "# Welcome to AI Notes!\n\nThis is your first note. Start writing your thoughts, ideas, and insights here.\n\n## Features\n- Real-time sync across devices\n- AI-powered search\n- Smart tagging\n- Markdown support\n\nEnjoy your note-taking journey!",
+    content:
+      "# Welcome to AI Notes!\n\nThis is your first note. Start writing your thoughts, ideas, and insights here.\n\n## Features\n- Real-time sync across devices\n- AI-powered search\n- Smart tagging\n- Markdown support\n\nEnjoy your note-taking journey!",
     tags: ["welcome", "getting-started"],
     workspaceId: "demo-workspace" as Id<"workspaces">,
     ownerId: "demo-user" as Id<"users">,
@@ -50,8 +61,10 @@ export default function Notes() {
   const [searchParams] = useSearchParams();
   const { user, isLoading: authLoading, isAuthenticated } = useConvexAuth();
   const { signOut } = useAuthActions();
-  
-  const [selectedNoteId, setSelectedNoteId] = useState<Id<"notes"> | null>(null);
+
+  const [selectedNoteId, setSelectedNoteId] = useState<Id<"notes"> | null>(
+    null,
+  );
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chatOpen, setChatOpen] = useState(searchParams.get("chat") === "true");
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,28 +75,33 @@ export default function Notes() {
   // Convex queries and mutations
   const workspaces = useQuery(api.workspaces?.list);
   const defaultWorkspace = useQuery(api.workspaces?.getDefault);
-  const notes = useQuery(api.notes?.list, 
-    defaultWorkspace ? { workspaceId: defaultWorkspace._id } : "skip"
+  const notes = useQuery(
+    api.notes?.list,
+    defaultWorkspace ? { workspaceId: defaultWorkspace._id } : "skip",
   );
-  const selectedNote = useQuery(api.notes?.get, 
-    selectedNoteId ? { id: selectedNoteId } : "skip"
+  const selectedNote = useQuery(
+    api.notes?.get,
+    selectedNoteId ? { id: selectedNoteId } : "skip",
   );
-  
+
   const createNote = useMutation(api.notes?.create);
   const updateNote = useMutation(api.notes?.update);
 
   // Use demo data if Convex queries fail
   const displayNotes = notes || demoNotes;
-  const currentWorkspace = defaultWorkspace || { 
+  const currentWorkspace = defaultWorkspace || {
     _id: "demo-workspace" as Id<"workspaces">,
-    name: "My Workspace" 
+    name: "My Workspace",
   };
 
   // Filter notes based on search
-  const filteredNotes = displayNotes.filter((note) =>
-    note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredNotes = displayNotes.filter(
+    (note) =>
+      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.tags.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
   );
 
   // Load note content when selected note changes
@@ -92,7 +110,7 @@ export default function Notes() {
       setNoteContent(selectedNote.content);
       setNoteTags(selectedNote.tags);
     } else if (selectedNoteId && displayNotes.length > 0) {
-      const demoNote = displayNotes.find(n => n._id === selectedNoteId);
+      const demoNote = displayNotes.find((n) => n._id === selectedNoteId);
       if (demoNote) {
         setNoteContent(demoNote.content);
         setNoteTags(demoNote.tags);
@@ -109,7 +127,7 @@ export default function Notes() {
 
   const handleCreateNote = async () => {
     if (!defaultWorkspace) return;
-    
+
     try {
       const noteId = await createNote({
         title: newNoteTitle,
@@ -126,7 +144,7 @@ export default function Notes() {
 
   const handleSaveNote = async () => {
     if (!selectedNoteId || !selectedNote) return;
-    
+
     try {
       await updateNote({
         id: selectedNoteId,
@@ -162,7 +180,11 @@ export default function Notes() {
     return <Navigate to="/login" replace />;
   }
 
-  const currentNote = selectedNote || (selectedNoteId ? displayNotes.find(n => n._id === selectedNoteId) : null);
+  const currentNote =
+    selectedNote ||
+    (selectedNoteId
+      ? displayNotes.find((n) => n._id === selectedNoteId)
+      : null);
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -181,22 +203,16 @@ export default function Notes() {
             )}
             <h1 className="font-semibold">AI Notes</h1>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               Welcome, {user?.name || "User"}
             </div>
             <Avatar className="h-8 w-8">
               <AvatarImage src={user?.image} />
-              <AvatarFallback>
-                {user?.name?.charAt(0) || "U"}
-              </AvatarFallback>
+              <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-            >
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
@@ -234,7 +250,7 @@ export default function Notes() {
                         </Button>
                       </div>
                     </div>
-                    
+
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                       <Input
@@ -244,14 +260,16 @@ export default function Notes() {
                         className="pl-10"
                       />
                     </div>
-                    
+
                     <div className="flex gap-2">
                       <Input
                         value={newNoteTitle}
                         onChange={(e) => setNewNoteTitle(e.target.value)}
                         placeholder="Note title..."
                         className="flex-1"
-                        onKeyDown={(e) => e.key === "Enter" && handleCreateNote()}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && handleCreateNote()
+                        }
                       />
                       <Button onClick={handleCreateNote} size="sm">
                         <Plus className="w-4 h-4" />
@@ -287,7 +305,7 @@ export default function Notes() {
                               onClick={() => setSelectedNoteId(note._id)}
                               className={cn(
                                 "p-3 rounded-lg cursor-pointer hover:bg-accent transition-colors",
-                                selectedNoteId === note._id && "bg-accent"
+                                selectedNoteId === note._id && "bg-accent",
                               )}
                             >
                               <div className="font-medium text-sm truncate mb-1">
@@ -311,7 +329,10 @@ export default function Notes() {
                                     </Badge>
                                   ))}
                                   {note.tags.length > 2 && (
-                                    <Badge variant="outline" className="text-xs">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
                                       +{note.tags.length - 2}
                                     </Badge>
                                   )}
@@ -349,7 +370,11 @@ export default function Notes() {
                     {/* Tags */}
                     <div className="flex flex-wrap items-center gap-2">
                       {noteTags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           <Tag className="w-3 h-3 mr-1" />
                           {tag}
                         </Badge>
@@ -412,7 +437,8 @@ export default function Notes() {
                       <Bot className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <h3 className="font-medium mb-2">AI Chat Coming Soon</h3>
                       <p className="text-sm">
-                        The AI chat feature will be available once you configure your OpenAI API key in the Convex environment.
+                        The AI chat feature will be available once you configure
+                        your OpenAI API key in the Convex environment.
                       </p>
                     </div>
                   </div>

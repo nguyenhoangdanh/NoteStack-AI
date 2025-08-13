@@ -4,7 +4,13 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { Eye, EyeOff, LogIn, Mail, Lock, ArrowLeft } from "lucide-react";
 import { useConvexAuth } from "convex/react";
@@ -13,7 +19,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { signIn } = useAuthActions();
   const { isAuthenticated, isLoading } = useConvexAuth();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +36,7 @@ export default function Login() {
   const handleGoogleSignIn = async () => {
     setError("");
     setIsSubmitting(true);
-    
+
     try {
       await signIn("google");
     } catch (err) {
@@ -49,7 +55,9 @@ export default function Login() {
     try {
       await signIn("password", { email, password });
     } catch (err: any) {
-      setError(err.message || "Failed to sign in. Please check your credentials.");
+      setError(
+        err.message || "Failed to sign in. Please check your credentials.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -84,7 +92,9 @@ export default function Login() {
             <LogIn className="w-6 h-6 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
-          <p className="text-muted-foreground mt-2">Sign in to your AI Notes account</p>
+          <p className="text-muted-foreground mt-2">
+            Sign in to your AI Notes account
+          </p>
         </div>
 
         <Card className="shadow-lg border-0 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
@@ -176,7 +186,11 @@ export default function Login() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>

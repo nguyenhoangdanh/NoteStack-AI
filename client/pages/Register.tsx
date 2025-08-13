@@ -4,16 +4,30 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
-import { Eye, EyeOff, UserPlus, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  UserPlus,
+  Mail,
+  Lock,
+  User,
+  ArrowLeft,
+} from "lucide-react";
 import { useConvexAuth } from "convex/react";
 
 export default function Register() {
   const navigate = useNavigate();
   const { signIn } = useAuthActions();
   const { isAuthenticated, isLoading } = useConvexAuth();
-  
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +47,7 @@ export default function Register() {
   const handleGoogleSignUp = async () => {
     setError("");
     setIsSubmitting(true);
-    
+
     try {
       await signIn("google");
     } catch (err) {
@@ -61,11 +75,11 @@ export default function Register() {
     setIsSubmitting(true);
 
     try {
-      await signIn("password", { 
-        email, 
+      await signIn("password", {
+        email,
         password,
         name,
-        flow: "signUp"
+        flow: "signUp",
       });
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.");
@@ -103,7 +117,9 @@ export default function Register() {
             <UserPlus className="w-6 h-6 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Create account</h1>
-          <p className="text-muted-foreground mt-2">Join AI Notes and start organizing your thoughts</p>
+          <p className="text-muted-foreground mt-2">
+            Join AI Notes and start organizing your thoughts
+          </p>
         </div>
 
         <Card className="shadow-lg border-0 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
@@ -211,7 +227,11 @@ export default function Register() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -234,7 +254,11 @@ export default function Register() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -266,8 +290,13 @@ export default function Register() {
             <div className="mt-4 text-center">
               <p className="text-xs text-muted-foreground">
                 By creating an account, you agree to our{" "}
-                <a href="#" className="underline">Terms of Service</a> and{" "}
-                <a href="#" className="underline">Privacy Policy</a>
+                <a href="#" className="underline">
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a href="#" className="underline">
+                  Privacy Policy
+                </a>
               </p>
             </div>
           </CardContent>

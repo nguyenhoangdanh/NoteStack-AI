@@ -1,5 +1,11 @@
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Button } from "./ui/button";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Terminal, ExternalLink, Copy, CheckCircle } from "lucide-react";
@@ -44,7 +50,8 @@ export default function SetupRequired() {
             <Alert>
               <Terminal className="h-4 w-4" />
               <AlertDescription>
-                You'll need to run these commands in your terminal to set up the backend.
+                You'll need to run these commands in your terminal to set up the
+                backend.
               </AlertDescription>
             </Alert>
 
@@ -63,7 +70,11 @@ export default function SetupRequired() {
                     size="sm"
                     onClick={() => handleCopyCommand("npm install -g convex")}
                   >
-                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -82,11 +93,16 @@ export default function SetupRequired() {
                     size="sm"
                     onClick={() => handleCopyCommand("npx convex dev")}
                   >
-                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  This will create a Convex account and project. Follow the prompts.
+                  This will create a Convex account and project. Follow the
+                  prompts.
                 </p>
               </div>
 
@@ -98,7 +114,8 @@ export default function SetupRequired() {
                   Update Environment
                 </h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Copy your Convex URL from the terminal output and update <code>.env.local</code>:
+                  Copy your Convex URL from the terminal output and update{" "}
+                  <code>.env.local</code>:
                 </p>
                 <div className="bg-muted rounded-lg p-3 font-mono text-sm">
                   <code>VITE_CONVEX_URL=https://your-project.convex.cloud</code>
@@ -145,8 +162,9 @@ export default function SetupRequired() {
 
             <Alert>
               <AlertDescription>
-                <strong>Optional:</strong> For AI features, you'll also need an OpenAI API key. 
-                Add it to your Convex environment with: <code>npx convex env set OPENAI_API_KEY sk-your-key</code>
+                <strong>Optional:</strong> For AI features, you'll also need an
+                OpenAI API key. Add it to your Convex environment with:{" "}
+                <code>npx convex env set OPENAI_API_KEY sk-your-key</code>
               </AlertDescription>
             </Alert>
           </CardContent>

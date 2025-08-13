@@ -64,41 +64,41 @@ function AppContent() {
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <PublicRoute>
               <Index />
             </PublicRoute>
-          } 
+          }
         />
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             <PublicRoute>
               <Login />
             </PublicRoute>
-          } 
+          }
         />
-        <Route 
-          path="/register" 
+        <Route
+          path="/register"
           element={
             <PublicRoute>
               <Register />
             </PublicRoute>
-          } 
+          }
         />
-        
+
         {/* Protected routes */}
-        <Route 
-          path="/notes" 
+        <Route
+          path="/notes"
           element={
             <ProtectedRoute>
               <Notes />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Catch all - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
