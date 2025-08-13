@@ -1,26 +1,26 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Badge } from './ui/badge';
-import { 
-  Bold, 
-  Italic, 
-  List, 
-  ListOrdered, 
-  Quote, 
-  Code, 
+import React, { useCallback, useEffect, useState } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Badge } from "./ui/badge";
+import {
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Quote,
+  Code,
   Save,
   Tag,
   X,
-  Plus
-} from 'lucide-react';
-import { cn } from '../lib/utils';
-import { useUpdateNote, useProcessNoteForRAG, useSettings } from '../lib/query';
-import { useUIStore } from '../lib/store';
-import { toastMessages } from '../lib/toast';
-import type { Id } from '../../convex/_generated/dataModel';
+  Plus,
+} from "lucide-react";
+import { cn } from "../lib/utils";
+import { useUpdateNote, useProcessNoteForRAG, useSettings } from "../lib/query";
+import { useUIStore } from "../lib/store";
+import { toastMessages } from "../lib/toast";
+import type { Id } from "../../convex/_generated/dataModel";
 
 interface NoteEditorProps {
   note: {
@@ -33,11 +33,11 @@ interface NoteEditorProps {
 }
 
 export default function NoteEditor({ note, className }: NoteEditorProps) {
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState("");
   const [tags, setTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState('');
+  const [newTag, setNewTag] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
+
   const { saveDraft, getDraft, deleteDraft } = useUIStore();
   const updateNote = useUpdateNote();
   const processNoteForRAG = useProcessNoteForRAG();
@@ -45,10 +45,11 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content: '',
+    content: "",
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none max-w-none',
+        class:
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none max-w-none",
       },
     },
     onUpdate: ({ editor }) => {
@@ -74,9 +75,9 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
       setTags(note.tags);
       setHasUnsavedChanges(false);
     } else {
-      setTitle('');
+      setTitle("");
       setTags([]);
-      editor?.commands.setContent('');
+      editor?.commands.setContent("");
       setHasUnsavedChanges(false);
     }
   }, [note, editor, getDraft]);
@@ -89,15 +90,15 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
       }
     };
 
-    window.addEventListener('save-note', handleSaveShortcut);
-    return () => window.removeEventListener('save-note', handleSaveShortcut);
+    window.addEventListener("save-note", handleSaveShortcut);
+    return () => window.removeEventListener("save-note", handleSaveShortcut);
   }, [hasUnsavedChanges, handleSave]);
 
   const handleSave = useCallback(async () => {
     if (!note || !editor) return;
 
     const content = editor.getHTML();
-    
+
     try {
       await updateNote.mutateAsync({
         id: note._id,
@@ -115,37 +116,59 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
       deleteDraft(note._id);
       toastMessages.noteSaved();
     } catch (error) {
-      console.error('Failed to save note:', error);
+      console.error("Failed to save note:", error);
       toastMessages.saveError();
     }
-  }, [note, editor, title, tags, updateNote, processNoteForRAG, settings, deleteDraft]);
+  }, [
+    note,
+    editor,
+    title,
+    tags,
+    updateNote,
+    processNoteForRAG,
+    settings,
+    deleteDraft,
+  ]);
 
   const handleAddTag = useCallback(() => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
       setTags([...tags, newTag.trim()]);
-      setNewTag('');
+      setNewTag("");
       setHasUnsavedChanges(true);
     }
   }, [newTag, tags]);
 
-  const handleRemoveTag = useCallback((tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-    setHasUnsavedChanges(true);
-  }, [tags]);
+  const handleRemoveTag = useCallback(
+    (tagToRemove: string) => {
+      setTags(tags.filter((tag) => tag !== tagToRemove));
+      setHasUnsavedChanges(true);
+    },
+    [tags],
+  );
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  }, [handleAddTag]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleAddTag();
+      }
+    },
+    [handleAddTag],
+  );
 
   if (!note) {
     return (
-      <div className={cn("flex-1 flex items-center justify-center text-muted-foreground", className)}>
+      <div
+        className={cn(
+          "flex-1 flex items-center justify-center text-muted-foreground",
+          className,
+        )}
+      >
         <div className="text-center">
           <h3 className="text-lg font-medium mb-2">No note selected</h3>
-          <p>Select a note from the sidebar or create a new one to start editing.</p>
+          <p>
+            Select a note from the sidebar or create a new one to start editing.
+          </p>
         </div>
       </div>
     );
@@ -223,7 +246,7 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
             onClick={() => editor?.chain().focus().toggleBold().run()}
             className={cn(
               "h-8 w-8 p-0",
-              editor?.isActive('bold') && "bg-muted"
+              editor?.isActive("bold") && "bg-muted",
             )}
           >
             <Bold className="w-4 h-4" />
@@ -234,7 +257,7 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
             onClick={() => editor?.chain().focus().toggleItalic().run()}
             className={cn(
               "h-8 w-8 p-0",
-              editor?.isActive('italic') && "bg-muted"
+              editor?.isActive("italic") && "bg-muted",
             )}
           >
             <Italic className="w-4 h-4" />
@@ -245,7 +268,7 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
             onClick={() => editor?.chain().focus().toggleBulletList().run()}
             className={cn(
               "h-8 w-8 p-0",
-              editor?.isActive('bulletList') && "bg-muted"
+              editor?.isActive("bulletList") && "bg-muted",
             )}
           >
             <List className="w-4 h-4" />
@@ -256,7 +279,7 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
             onClick={() => editor?.chain().focus().toggleOrderedList().run()}
             className={cn(
               "h-8 w-8 p-0",
-              editor?.isActive('orderedList') && "bg-muted"
+              editor?.isActive("orderedList") && "bg-muted",
             )}
           >
             <ListOrdered className="w-4 h-4" />
@@ -267,7 +290,7 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
             onClick={() => editor?.chain().focus().toggleBlockquote().run()}
             className={cn(
               "h-8 w-8 p-0",
-              editor?.isActive('blockquote') && "bg-muted"
+              editor?.isActive("blockquote") && "bg-muted",
             )}
           >
             <Quote className="w-4 h-4" />
@@ -278,7 +301,7 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
             onClick={() => editor?.chain().focus().toggleCode().run()}
             className={cn(
               "h-8 w-8 p-0",
-              editor?.isActive('code') && "bg-muted"
+              editor?.isActive("code") && "bg-muted",
             )}
           >
             <Code className="w-4 h-4" />
@@ -289,8 +312,8 @@ export default function NoteEditor({ note, className }: NoteEditorProps) {
       {/* Editor */}
       <div className="flex-1 overflow-auto">
         <div className="p-6">
-          <EditorContent 
-            editor={editor} 
+          <EditorContent
+            editor={editor}
             className="min-h-[500px] focus:outline-none"
           />
         </div>

@@ -25,7 +25,11 @@ export const stream = httpAction(async (ctx, request) => {
   }
 
   try {
-    const { query, model = "gpt-4o-mini", maxTokens = 4000 } = await request.json();
+    const {
+      query,
+      model = "gpt-4o-mini",
+      maxTokens = 4000,
+    } = await request.json();
 
     if (!query) {
       return new Response("Query is required", { status: 400 });
@@ -37,10 +41,13 @@ export const stream = httpAction(async (ctx, request) => {
     const userMaxTokens = settings?.maxTokens || maxTokens;
 
     // Build context from user's notes
-    const { context, citations } = await ctx.runAction(api.vectors.buildChatContext, {
-      query,
-      maxTokens: Math.floor(userMaxTokens * 0.7), // Reserve 30% for response
-    });
+    const { context, citations } = await ctx.runAction(
+      api.vectors.buildChatContext,
+      {
+        query,
+        maxTokens: Math.floor(userMaxTokens * 0.7), // Reserve 30% for response
+      },
+    );
 
     let fullPrompt: string;
     if (context.trim()) {
@@ -69,23 +76,25 @@ Please inform the user that you couldn't find this information in their notes an
     });
 
     // Track usage (estimate tokens)
-    const today = new Date().toISOString().split('T')[0];
-    const estimatedTokens = Math.ceil(fullPrompt.length / 4) + Math.ceil(userMaxTokens * 0.3);
-    
+    const today = new Date().toISOString().split("T")[0];
+    const estimatedTokens =
+      Math.ceil(fullPrompt.length / 4) + Math.ceil(userMaxTokens * 0.3);
+
     // Run usage tracking async (don't await to avoid blocking stream)
-    ctx.runMutation(api.vectors.updateUsage, {
-      date: today,
-      chatTokens: estimatedTokens,
-    }).catch(console.error);
+    ctx
+      .runMutation(api.vectors.updateUsage, {
+        date: today,
+        chatTokens: estimatedTokens,
+      })
+      .catch(console.error);
 
     // Return streaming response with citations in headers
     return result.toDataStreamResponse({
       headers: {
-        'X-Citations': JSON.stringify(citations),
-        'Content-Type': 'text/plain; charset=utf-8',
+        "X-Citations": JSON.stringify(citations),
+        "Content-Type": "text/plain; charset=utf-8",
       },
     });
-
   } catch (error) {
     console.error("Chat error:", error);
     return new Response("Internal server error", { status: 500 });
@@ -100,7 +109,11 @@ export const complete = httpAction(async (ctx, request) => {
   }
 
   try {
-    const { query, model = "gpt-4o-mini", maxTokens = 4000 } = await request.json();
+    const {
+      query,
+      model = "gpt-4o-mini",
+      maxTokens = 4000,
+    } = await request.json();
 
     if (!query) {
       return new Response("Query is required", { status: 400 });
@@ -112,10 +125,13 @@ export const complete = httpAction(async (ctx, request) => {
     const userMaxTokens = settings?.maxTokens || maxTokens;
 
     // Build context from user's notes
-    const { context, citations } = await ctx.runAction(api.vectors.buildChatContext, {
-      query,
-      maxTokens: Math.floor(userMaxTokens * 0.7),
-    });
+    const { context, citations } = await ctx.runAction(
+      api.vectors.buildChatContext,
+      {
+        query,
+        maxTokens: Math.floor(userMaxTokens * 0.7),
+      },
+    );
 
     let fullPrompt: string;
     if (context.trim()) {
@@ -146,21 +162,24 @@ Please inform the user that you couldn't find this information in their notes an
     const fullText = await result.text;
 
     // Track usage
-    const today = new Date().toISOString().split('T')[0];
-    const estimatedTokens = Math.ceil(fullPrompt.length / 4) + Math.ceil(fullText.length / 4);
-    
+    const today = new Date().toISOString().split("T")[0];
+    const estimatedTokens =
+      Math.ceil(fullPrompt.length / 4) + Math.ceil(fullText.length / 4);
+
     await ctx.runMutation(api.vectors.updateUsage, {
       date: today,
       chatTokens: estimatedTokens,
     });
 
-    return new Response(JSON.stringify({
-      response: fullText,
-      citations,
-    }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-
+    return new Response(
+      JSON.stringify({
+        response: fullText,
+        citations,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("Chat complete error:", error);
     return new Response("Internal server error", { status: 500 });

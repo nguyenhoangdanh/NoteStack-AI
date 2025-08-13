@@ -1,21 +1,24 @@
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from './ui/dialog';
-import { Badge } from './ui/badge';
-import { Keyboard } from 'lucide-react';
-import { KEYBOARD_SHORTCUTS } from '../hooks/useKeyboardShortcuts';
+} from "./ui/dialog";
+import { Badge } from "./ui/badge";
+import { Keyboard } from "lucide-react";
+import { KEYBOARD_SHORTCUTS } from "../hooks/useKeyboardShortcuts";
 
 interface ShortcutsHelpProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function ShortcutsHelp({ open, onOpenChange }: ShortcutsHelpProps) {
+export default function ShortcutsHelp({
+  open,
+  onOpenChange,
+}: ShortcutsHelpProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -28,7 +31,7 @@ export default function ShortcutsHelp({ open, onOpenChange }: ShortcutsHelpProps
             Speed up your workflow with these keyboard shortcuts
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="grid gap-3">
             {KEYBOARD_SHORTCUTS.map((shortcut, index) => (
@@ -37,7 +40,10 @@ export default function ShortcutsHelp({ open, onOpenChange }: ShortcutsHelpProps
                 <div className="flex items-center gap-1">
                   {shortcut.keys.map((key, keyIndex) => (
                     <React.Fragment key={keyIndex}>
-                      <Badge variant="secondary" className="font-mono text-xs px-2 py-1">
+                      <Badge
+                        variant="secondary"
+                        className="font-mono text-xs px-2 py-1"
+                      >
                         {key}
                       </Badge>
                       {keyIndex < shortcut.keys.length - 1 && (
@@ -49,7 +55,7 @@ export default function ShortcutsHelp({ open, onOpenChange }: ShortcutsHelpProps
               </div>
             ))}
           </div>
-          
+
           <div className="pt-4 border-t text-xs text-muted-foreground">
             <p>�� = Cmd on Mac, Ctrl on Windows/Linux</p>
           </div>

@@ -18,7 +18,7 @@ A production-ready AI-powered note-taking application built with React, Vite, Co
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm (recommended) or npm
 - OpenAI API key
 - Google OAuth credentials
@@ -141,6 +141,7 @@ pnpm test         # Run tests
 For development, you'll need:
 
 1. **Convex Development Environment**:
+
    ```bash
    npx convex dev
    ```
@@ -169,6 +170,7 @@ The app uses Convex Auth with Google OAuth. Make sure to:
 ### Vector Search Configuration
 
 The app automatically:
+
 - Chunks notes into 300-600 token pieces
 - Generates embeddings using OpenAI
 - Stores vectors in Convex with user isolation
@@ -194,18 +196,21 @@ npx convex env set AUTH_SECRET your-production-auth-secret
 The frontend can be deployed to any static hosting service:
 
 #### Netlify
+
 ```bash
 pnpm build
 # Upload dist/ folder to Netlify
 ```
 
 #### Vercel
+
 ```bash
 pnpm build
 # Deploy dist/ folder to Vercel
 ```
 
 #### Convex Hosting
+
 ```bash
 # Convex can host your frontend automatically
 npx convex deploy --prod
@@ -213,16 +218,16 @@ npx convex deploy --prod
 
 ## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Cmd/Ctrl + K` | Open command palette |
-| `Cmd/Ctrl + N` | Create new note |
-| `Cmd/Ctrl + S` | Save current note |
-| `Cmd/Ctrl + J` | Toggle chat panel |
-| `Cmd/Ctrl + ,` | Open settings |
-| `/` | Quick search |
-| `?` | Show keyboard shortcuts |
-| `Esc` | Close dialogs |
+| Shortcut       | Action                  |
+| -------------- | ----------------------- |
+| `Cmd/Ctrl + K` | Open command palette    |
+| `Cmd/Ctrl + N` | Create new note         |
+| `Cmd/Ctrl + S` | Save current note       |
+| `Cmd/Ctrl + J` | Toggle chat panel       |
+| `Cmd/Ctrl + ,` | Open settings           |
+| `/`            | Quick search            |
+| `?`            | Show keyboard shortcuts |
+| `Esc`          | Close dialogs           |
 
 ## 🔒 Security
 
@@ -235,6 +240,7 @@ npx convex deploy --prod
 ## 📊 Usage Analytics
 
 The app tracks:
+
 - Token usage for embeddings and chat
 - Daily usage statistics
 - Performance metrics

@@ -1,7 +1,13 @@
-import React from 'react';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { FileText, Bot, Search, Zap, Shield, Globe } from 'lucide-react';
+import React from "react";
+import { Button } from "../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { FileText, Bot, Search, Zap, Shield, Globe } from "lucide-react";
 
 export default function Index() {
   return (
@@ -37,11 +43,11 @@ export default function Index() {
                 Your Intelligent Note-Taking Companion
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Capture thoughts, discover insights, and chat with your notes using AI. 
-                Experience the future of knowledge management.
+                Capture thoughts, discover insights, and chat with your notes
+                using AI. Experience the future of knowledge management.
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="text-lg px-8 py-6">
                 <FileText className="w-5 h-5 mr-2" />
@@ -65,7 +71,7 @@ export default function Index() {
               Everything you need for intelligent note-taking
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="border-0 shadow-lg bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
               <CardHeader>
@@ -74,7 +80,8 @@ export default function Index() {
                 </div>
                 <CardTitle>Smart Markdown Editor</CardTitle>
                 <CardDescription>
-                  Rich text editing with markdown support, real-time sync, and intuitive formatting.
+                  Rich text editing with markdown support, real-time sync, and
+                  intuitive formatting.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -86,7 +93,8 @@ export default function Index() {
                 </div>
                 <CardTitle>AI-Powered Search</CardTitle>
                 <CardDescription>
-                  Semantic search through your notes using vector embeddings and intelligent ranking.
+                  Semantic search through your notes using vector embeddings and
+                  intelligent ranking.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -98,7 +106,8 @@ export default function Index() {
                 </div>
                 <CardTitle>Chat with Notes</CardTitle>
                 <CardDescription>
-                  Ask questions about your notes and get contextual answers with source citations.
+                  Ask questions about your notes and get contextual answers with
+                  source citations.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -110,7 +119,8 @@ export default function Index() {
                 </div>
                 <CardTitle>Real-time Sync</CardTitle>
                 <CardDescription>
-                  Your notes sync instantly across all devices with live collaboration support.
+                  Your notes sync instantly across all devices with live
+                  collaboration support.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -122,7 +132,8 @@ export default function Index() {
                 </div>
                 <CardTitle>Secure & Private</CardTitle>
                 <CardDescription>
-                  Your data is encrypted and isolated. Google OAuth for secure authentication.
+                  Your data is encrypted and isolated. Google OAuth for secure
+                  authentication.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -134,7 +145,8 @@ export default function Index() {
                 </div>
                 <CardTitle>Import & Export</CardTitle>
                 <CardDescription>
-                  Import from markdown files and export your notes. No vendor lock-in.
+                  Import from markdown files and export your notes. No vendor
+                  lock-in.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -148,7 +160,8 @@ export default function Index() {
           <div className="mx-auto max-w-2xl">
             <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
             <p className="text-xl text-muted-foreground mb-8">
-              Join thousands of users who are already using AI Notes to organize their thoughts.
+              Join thousands of users who are already using AI Notes to organize
+              their thoughts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="text-lg px-8 py-6">

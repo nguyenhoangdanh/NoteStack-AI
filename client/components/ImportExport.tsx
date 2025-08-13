@@ -1,13 +1,36 @@
-import React, { useRef, useState } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Progress } from './ui/progress';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Upload, Download, FileText, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { useCreateNote, useNotes, useDefaultWorkspace, useProcessNoteForRAG } from '../lib/query';
-import { importMultipleFiles, exportAllNotes, exportSingleNote, type ImportedFile } from '../lib/fileUtils';
-import { cn } from '../lib/utils';
+import React, { useRef, useState } from "react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Progress } from "./ui/progress";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Badge } from "./ui/badge";
+import {
+  Upload,
+  Download,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Loader2,
+} from "lucide-react";
+import {
+  useCreateNote,
+  useNotes,
+  useDefaultWorkspace,
+  useProcessNoteForRAG,
+} from "../lib/query";
+import {
+  importMultipleFiles,
+  exportAllNotes,
+  exportSingleNote,
+  type ImportedFile,
+} from "../lib/fileUtils";
+import { cn } from "../lib/utils";
 
 interface ImportExportProps {
   className?: string;
@@ -62,7 +85,7 @@ export default function ImportExport({ className }: ImportExportProps) {
 
           // Process for RAG in background
           processNoteForRAG.mutate(noteId);
-          
+
           results.success.push(file);
         } catch (error) {
           console.error(`Failed to create note for ${file.title}:`, error);
@@ -74,16 +97,16 @@ export default function ImportExport({ className }: ImportExportProps) {
 
       setImportResults(results);
     } catch (error) {
-      console.error('Import failed:', error);
+      console.error("Import failed:", error);
       setImportResults({
         success: [],
-        failed: ['Import failed'],
+        failed: ["Import failed"],
       });
     } finally {
       setImporting(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -119,7 +142,7 @@ export default function ImportExport({ className }: ImportExportProps) {
               variant="outline"
             >
               <Upload className="w-4 h-4 mr-2" />
-              {importing ? 'Importing...' : 'Select Files'}
+              {importing ? "Importing..." : "Select Files"}
             </Button>
             <div className="text-sm text-muted-foreground">
               Supports .md and .txt files
@@ -151,7 +174,7 @@ export default function ImportExport({ className }: ImportExportProps) {
                 <CheckCircle className="w-5 h-5 text-green-500" />
                 <span className="font-medium">Import Complete</span>
               </div>
-              
+
               {importResults.success.length > 0 && (
                 <div>
                   <div className="text-sm font-medium text-green-600 mb-2">
@@ -159,13 +182,20 @@ export default function ImportExport({ className }: ImportExportProps) {
                   </div>
                   <div className="space-y-1">
                     {importResults.success.map((file, index) => (
-                      <div key={index} className="flex items-center gap-2 text-sm">
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 text-sm"
+                      >
                         <FileText className="w-3 h-3" />
                         <span>{file.title}</span>
                         {file.tags.length > 0 && (
                           <div className="flex gap-1">
                             {file.tags.map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="text-xs"
+                              >
                                 {tag}
                               </Badge>
                             ))}
@@ -184,7 +214,10 @@ export default function ImportExport({ className }: ImportExportProps) {
                   </div>
                   <div className="space-y-1">
                     {importResults.failed.map((filename, index) => (
-                      <div key={index} className="flex items-center gap-2 text-sm text-red-600">
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 text-sm text-red-600"
+                      >
                         <XCircle className="w-3 h-3" />
                         <span>{filename}</span>
                       </div>
@@ -219,25 +252,34 @@ export default function ImportExport({ className }: ImportExportProps) {
               Export All Notes
             </Button>
             <div className="text-sm text-muted-foreground">
-              {notes ? `${notes.length} notes available` : 'No notes to export'}
+              {notes ? `${notes.length} notes available` : "No notes to export"}
             </div>
           </div>
 
           {notes && notes.length > 0 && (
             <div className="space-y-2">
-              <div className="text-sm font-medium">Or export individual notes:</div>
+              <div className="text-sm font-medium">
+                Or export individual notes:
+              </div>
               <div className="max-h-48 overflow-y-auto space-y-1">
                 {notes.slice(0, 10).map((note) => (
-                  <div key={note._id} className="flex items-center justify-between p-2 rounded border">
+                  <div
+                    key={note._id}
+                    className="flex items-center justify-between p-2 rounded border"
+                  >
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">
-                        {note.title || 'Untitled'}
+                        {note.title || "Untitled"}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {note.tags.length > 0 && (
                           <div className="flex gap-1 mt-1">
                             {note.tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="outline" className="text-xs">
+                              <Badge
+                                key={tag}
+                                variant="outline"
+                                className="text-xs"
+                              >
                                 {tag}
                               </Badge>
                             ))}

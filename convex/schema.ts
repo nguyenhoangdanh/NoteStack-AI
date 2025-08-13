@@ -4,7 +4,7 @@ import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
   ...authTables,
-  
+
   users: defineTable({
     name: v.optional(v.string()),
     email: v.string(),
@@ -39,7 +39,7 @@ export default defineSchema({
       filterFields: ["ownerId", "isDeleted"],
     })
     .searchIndex("search_content", {
-      searchField: "content", 
+      searchField: "content",
       filterFields: ["ownerId", "isDeleted"],
     }),
 

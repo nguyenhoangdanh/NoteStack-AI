@@ -1,21 +1,31 @@
-import React, { useEffect } from 'react';
-import { useAuth, useDefaultWorkspace } from '../lib/query';
-import { useUIStore } from '../lib/store';
-import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
-import Sidebar from '../components/Sidebar';
-import NoteEditor from '../components/NoteEditor';
-import ChatPanel from '../components/ChatPanel';
-import CommandPalette from '../components/CommandPalette';
-import { Button } from '../components/ui/button';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../components/ui/resizable';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { cn } from '../lib/utils';
-import { useNote } from '../lib/query';
+import React, { useEffect } from "react";
+import { useAuth, useDefaultWorkspace } from "../lib/query";
+import { useUIStore } from "../lib/store";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import Sidebar from "../components/Sidebar";
+import NoteEditor from "../components/NoteEditor";
+import ChatPanel from "../components/ChatPanel";
+import CommandPalette from "../components/CommandPalette";
+import { Button } from "../components/ui/button";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "../components/ui/resizable";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { cn } from "../lib/utils";
+import { useNote } from "../lib/query";
 
 export default function Notes() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const defaultWorkspace = useDefaultWorkspace();
-  const { selectedNoteId, sidebarOpen, chatOpen, setSidebarOpen, setSelectedWorkspaceId } = useUIStore();
+  const {
+    selectedNoteId,
+    sidebarOpen,
+    chatOpen,
+    setSidebarOpen,
+    setSelectedWorkspaceId,
+  } = useUIStore();
   const note = useNote(selectedNoteId);
 
   // Initialize keyboard shortcuts
@@ -44,7 +54,10 @@ export default function Notes() {
           <p className="text-muted-foreground">
             A smart note-taking app powered by AI
           </p>
-          <Button size="lg" onClick={() => window.location.href = '/api/auth/signin/google'}>
+          <Button
+            size="lg"
+            onClick={() => (window.location.href = "/api/auth/signin/google")}
+          >
             Sign in with Google
           </Button>
         </div>
@@ -55,7 +68,7 @@ export default function Notes() {
   return (
     <div className="h-screen flex flex-col bg-background">
       <CommandPalette />
-      
+
       {/* Header */}
       <div className="flex-shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between h-14 px-4">
@@ -71,7 +84,7 @@ export default function Notes() {
             )}
             <h1 className="font-semibold">AI Notes</h1>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <div className="text-sm text-muted-foreground">
               Welcome, {user?.name}
@@ -79,7 +92,7 @@ export default function Notes() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = '/api/auth/signout'}
+              onClick={() => (window.location.href = "/api/auth/signout")}
             >
               Sign Out
             </Button>
@@ -91,17 +104,17 @@ export default function Notes() {
       <div className="flex-1 flex overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="flex-1">
           {/* Sidebar */}
-          <ResizablePanel 
-            defaultSize={20} 
-            minSize={15} 
+          <ResizablePanel
+            defaultSize={20}
+            minSize={15}
             maxSize={40}
             className={cn(!sidebarOpen && "hidden")}
           >
             <Sidebar />
           </ResizablePanel>
-          
+
           {sidebarOpen && <ResizableHandle />}
-          
+
           {/* Editor */}
           <ResizablePanel defaultSize={chatOpen ? 50 : 80} minSize={30}>
             <div className="h-full flex flex-col relative">
@@ -118,7 +131,7 @@ export default function Notes() {
               <NoteEditor note={note} className="flex-1" />
             </div>
           </ResizablePanel>
-          
+
           {/* Chat Panel */}
           {chatOpen && (
             <>

@@ -16,7 +16,7 @@ http.route({
 
 http.route({
   path: "/api/chat/complete",
-  method: "POST", 
+  method: "POST",
   handler: complete,
 });
 

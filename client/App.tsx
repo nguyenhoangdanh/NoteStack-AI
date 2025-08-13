@@ -1,9 +1,9 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from './components/ui/toaster';
-import Index from './pages/Index';
-import { Loader2 } from 'lucide-react';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+import { Toaster } from "./components/ui/toaster";
+import Index from "./pages/Index";
+import { Loader2 } from "lucide-react";
 
 // Simple demo component for now
 

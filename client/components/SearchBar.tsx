@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, FileText, MessageSquare } from 'lucide-react';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
-import { cn } from '../lib/utils';
-import { useSearchNotes } from '../lib/query';
-import { useUIStore } from '../lib/store';
-import { useChatStore } from '../lib/store';
-import type { Id } from '../../convex/_generated/dataModel';
+import React, { useState, useEffect, useRef } from "react";
+import { Search, X, FileText, MessageSquare } from "lucide-react";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { cn } from "../lib/utils";
+import { useSearchNotes } from "../lib/query";
+import { useUIStore } from "../lib/store";
+import { useChatStore } from "../lib/store";
+import type { Id } from "../../convex/_generated/dataModel";
 
 interface SearchBarProps {
   className?: string;
@@ -16,15 +16,20 @@ interface SearchBarProps {
   autoFocus?: boolean;
 }
 
-export default function SearchBar({ className, placeholder = "Search notes...", autoFocus }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+export default function SearchBar({
+  className,
+  placeholder = "Search notes...",
+  autoFocus,
+}: SearchBarProps) {
+  const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const { setSelectedNoteId, setChatOpen, setCommandPaletteOpen } = useUIStore();
+  const { setSelectedNoteId, setChatOpen, setCommandPaletteOpen } =
+    useUIStore();
   const { setInput, addMessage } = useChatStore();
-  
+
   const searchResults = useSearchNotes(query);
 
   useEffect(() => {
@@ -45,8 +50,8 @@ export default function SearchBar({ className, placeholder = "Search notes...", 
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +62,7 @@ export default function SearchBar({ className, placeholder = "Search notes...", 
 
   const handleSelectNote = (noteId: Id<"notes">) => {
     setSelectedNoteId(noteId);
-    setQuery('');
+    setQuery("");
     setIsOpen(false);
     setCommandPaletteOpen(false);
   };
@@ -65,23 +70,23 @@ export default function SearchBar({ className, placeholder = "Search notes...", 
   const handleAskQuestion = () => {
     if (query.trim()) {
       addMessage({
-        role: 'user',
+        role: "user",
         content: query.trim(),
       });
       setInput(query.trim());
       setChatOpen(true);
-      setQuery('');
+      setQuery("");
       setIsOpen(false);
       setCommandPaletteOpen(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setQuery('');
+    if (e.key === "Escape") {
+      setQuery("");
       setIsOpen(false);
       setCommandPaletteOpen(false);
-    } else if (e.key === 'Enter' && query.trim()) {
+    } else if (e.key === "Enter" && query.trim()) {
       e.preventDefault();
       if (searchResults && searchResults.length > 0) {
         handleSelectNote(searchResults[0]._id);
@@ -92,23 +97,25 @@ export default function SearchBar({ className, placeholder = "Search notes...", 
   };
 
   const clearSearch = () => {
-    setQuery('');
+    setQuery("");
     setIsOpen(false);
     inputRef.current?.focus();
   };
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
-    
-    const regex = new RegExp(`(${query})`, 'gi');
+
+    const regex = new RegExp(`(${query})`, "gi");
     const parts = text.split(regex);
-    
-    return parts.map((part, index) => 
+
+    return parts.map((part, index) =>
       regex.test(part) ? (
         <mark key={index} className="bg-yellow-200 dark:bg-yellow-800">
           {part}
         </mark>
-      ) : part
+      ) : (
+        part
+      ),
     );
   };
 
@@ -139,7 +146,7 @@ export default function SearchBar({ className, placeholder = "Search notes...", 
 
       {/* Search Results */}
       {isOpen && (
-        <Card 
+        <Card
           ref={resultsRef}
           className="absolute top-full left-0 right-0 mt-2 max-h-96 overflow-auto z-50 shadow-lg"
         >
@@ -160,15 +167,21 @@ export default function SearchBar({ className, placeholder = "Search notes...", 
                         </div>
                         <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                           {highlightMatch(
-                            note.content.replace(/<[^>]*>/g, '').substring(0, 100),
-                            query
+                            note.content
+                              .replace(/<[^>]*>/g, "")
+                              .substring(0, 100),
+                            query,
                           )}
-                          {note.content.length > 100 && '...'}
+                          {note.content.length > 100 && "..."}
                         </div>
                         {note.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
                             {note.tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="text-xs"
+                              >
                                 {tag}
                               </Badge>
                             ))}
@@ -183,7 +196,7 @@ export default function SearchBar({ className, placeholder = "Search notes...", 
                     </div>
                   ))}
                 </div>
-                
+
                 {/* Ask AI option */}
                 <div className="border-t mt-2 pt-2">
                   <div

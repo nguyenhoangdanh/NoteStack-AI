@@ -2,7 +2,13 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { action, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { api } from "./_generated/api";
-import { chunkText, embedChunks, embedQuery, maximalMarginalRelevance, buildContextWithCitations } from "./lib/rag";
+import {
+  chunkText,
+  embedChunks,
+  embedQuery,
+  maximalMarginalRelevance,
+  buildContextWithCitations,
+} from "./lib/rag";
 
 export const processNoteForRAG = action({
   args: {
@@ -42,11 +48,12 @@ export const processNoteForRAG = action({
     }
 
     // Update usage tracking
-    const today = new Date().toISOString().split('T')[0];
-    const totalTokens = embeddedChunks.reduce((sum, chunk) => 
-      sum + Math.ceil(chunk.content.length / 4), 0
+    const today = new Date().toISOString().split("T")[0];
+    const totalTokens = embeddedChunks.reduce(
+      (sum, chunk) => sum + Math.ceil(chunk.content.length / 4),
+      0,
     );
-    
+
     await ctx.runMutation(api.vectors.updateUsage, {
       date: today,
       embeddingTokens: totalTokens,
@@ -122,9 +129,9 @@ export const semanticSearch = action({
     // Apply MMR for diversity
     const diverseResults = maximalMarginalRelevance(
       queryEmbedding,
-      results.map(r => ({ ...r._doc, similarity: r._score })),
+      results.map((r) => ({ ...r._doc, similarity: r._score })),
       limit,
-      0.7
+      0.7,
     );
 
     // Get note titles for context
@@ -162,12 +169,12 @@ export const buildChatContext = action({
 
     // Build context with citations
     const { context, citations } = buildContextWithCitations(
-      relevantChunks.map(chunk => ({
+      relevantChunks.map((chunk) => ({
         content: chunk.chunkContent,
         heading: chunk.heading,
         noteTitle: chunk.noteTitle,
       })),
-      maxTokens
+      maxTokens,
     );
 
     return { context, citations };
@@ -186,8 +193,8 @@ export const updateUsage = mutation({
 
     const existing = await ctx.db
       .query("usage")
-      .withIndex("by_owner_date", (q) => 
-        q.eq("ownerId", userId).eq("date", args.date)
+      .withIndex("by_owner_date", (q) =>
+        q.eq("ownerId", userId).eq("date", args.date),
       )
       .first();
 

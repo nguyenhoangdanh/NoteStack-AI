@@ -1,31 +1,62 @@
-import React, { useState } from 'react';
-import { useSettings, useUpdateSettings, useUsage } from '../lib/query';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Switch } from '../components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Badge } from '../components/ui/badge';
-import { Progress } from '../components/ui/progress';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Save, BarChart3, Settings as SettingsIcon, Upload, Download } from 'lucide-react';
-import ImportExport from '../components/ImportExport';
+import React, { useState } from "react";
+import { useSettings, useUpdateSettings, useUsage } from "../lib/query";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Switch } from "../components/ui/switch";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
+import { Badge } from "../components/ui/badge";
+import { Progress } from "../components/ui/progress";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Save,
+  BarChart3,
+  Settings as SettingsIcon,
+  Upload,
+  Download,
+} from "lucide-react";
+import ImportExport from "../components/ImportExport";
 
 const AVAILABLE_MODELS = [
-  { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast & Efficient)' },
-  { value: 'gpt-4o', label: 'GPT-4o (Advanced)' },
-  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+  { value: "gpt-4o-mini", label: "GPT-4o Mini (Fast & Efficient)" },
+  { value: "gpt-4o", label: "GPT-4o (Advanced)" },
+  { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
 ];
 
 export default function Settings() {
   const settings = useSettings();
   const usage = useUsage(30);
   const updateSettings = useUpdateSettings();
-  
-  const [model, setModel] = useState(settings?.model || 'gpt-4o-mini');
+
+  const [model, setModel] = useState(settings?.model || "gpt-4o-mini");
   const [maxTokens, setMaxTokens] = useState(settings?.maxTokens || 4000);
   const [autoReembed, setAutoReembed] = useState(settings?.autoReembed ?? true);
   const [hasChanges, setHasChanges] = useState(false);
@@ -48,7 +79,7 @@ export default function Settings() {
       });
       setHasChanges(false);
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      console.error("Failed to save settings:", error);
     }
   };
 
@@ -57,14 +88,18 @@ export default function Settings() {
   };
 
   // Prepare usage data for chart
-  const usageData = usage?.map(day => ({
-    date: new Date(day.date).toLocaleDateString(),
-    embedding: day.embeddingTokens,
-    chat: day.chatTokens,
-    total: day.embeddingTokens + day.chatTokens,
-  })) || [];
+  const usageData =
+    usage?.map((day) => ({
+      date: new Date(day.date).toLocaleDateString(),
+      embedding: day.embeddingTokens,
+      chat: day.chatTokens,
+      total: day.embeddingTokens + day.chatTokens,
+    })) || [];
 
-  const totalTokensThisMonth = usageData.reduce((sum, day) => sum + day.total, 0);
+  const totalTokensThisMonth = usageData.reduce(
+    (sum, day) => sum + day.total,
+    0,
+  );
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
@@ -97,16 +132,22 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="model">AI Model</Label>
-                <Select 
-                  value={model} 
-                  onValueChange={(value) => { setModel(value); markChanged(); }}
+                <Select
+                  value={model}
+                  onValueChange={(value) => {
+                    setModel(value);
+                    markChanged();
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABLE_MODELS.map((modelOption) => (
-                      <SelectItem key={modelOption.value} value={modelOption.value}>
+                      <SelectItem
+                        key={modelOption.value}
+                        value={modelOption.value}
+                      >
                         {modelOption.label}
                       </SelectItem>
                     ))}
@@ -126,13 +167,14 @@ export default function Settings() {
                   max="16000"
                   step="100"
                   value={maxTokens}
-                  onChange={(e) => { 
-                    setMaxTokens(Number(e.target.value)); 
-                    markChanged(); 
+                  onChange={(e) => {
+                    setMaxTokens(Number(e.target.value));
+                    markChanged();
                   }}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Maximum tokens for AI responses (1000-16000). Higher values allow longer responses but cost more.
+                  Maximum tokens for AI responses (1000-16000). Higher values
+                  allow longer responses but cost more.
                 </p>
               </div>
 
@@ -140,25 +182,29 @@ export default function Settings() {
                 <div className="space-y-0.5">
                   <Label htmlFor="autoReembed">Auto Re-embed Notes</Label>
                   <p className="text-sm text-muted-foreground">
-                    Automatically update embeddings when notes are saved for better search
+                    Automatically update embeddings when notes are saved for
+                    better search
                   </p>
                 </div>
                 <Switch
                   id="autoReembed"
                   checked={autoReembed}
-                  onCheckedChange={(checked) => { setAutoReembed(checked); markChanged(); }}
+                  onCheckedChange={(checked) => {
+                    setAutoReembed(checked);
+                    markChanged();
+                  }}
                 />
               </div>
 
               {hasChanges && (
                 <div className="flex items-center justify-between pt-4 border-t">
                   <Badge variant="secondary">Unsaved changes</Badge>
-                  <Button 
-                    onClick={handleSave} 
+                  <Button
+                    onClick={handleSave}
                     disabled={updateSettings.isPending}
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    {updateSettings.isPending ? 'Saving...' : 'Save Changes'}
+                    {updateSettings.isPending ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
               )}
@@ -189,7 +235,8 @@ export default function Settings() {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                These actions will process your notes in the background and may take some time
+                These actions will process your notes in the background and may
+                take some time
               </p>
             </CardContent>
           </Card>
@@ -204,37 +251,49 @@ export default function Settings() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">Total Tokens (30 days)</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Tokens (30 days)
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalTokensThisMonth.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {totalTokensThisMonth.toLocaleString()}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Embedding + Chat tokens
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">Embedding Tokens</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Embedding Tokens
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {usageData.reduce((sum, day) => sum + day.embedding, 0).toLocaleString()}
+                  {usageData
+                    .reduce((sum, day) => sum + day.embedding, 0)
+                    .toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   For note processing
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">Chat Tokens</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Chat Tokens
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {usageData.reduce((sum, day) => sum + day.chat, 0).toLocaleString()}
+                  {usageData
+                    .reduce((sum, day) => sum + day.chat, 0)
+                    .toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   For AI conversations
@@ -262,8 +321,18 @@ export default function Settings() {
                     <XAxis dataKey="date" fontSize={12} />
                     <YAxis fontSize={12} />
                     <Tooltip />
-                    <Bar dataKey="embedding" stackId="tokens" fill="#8884d8" name="Embedding" />
-                    <Bar dataKey="chat" stackId="tokens" fill="#82ca9d" name="Chat" />
+                    <Bar
+                      dataKey="embedding"
+                      stackId="tokens"
+                      fill="#8884d8"
+                      name="Embedding"
+                    />
+                    <Bar
+                      dataKey="chat"
+                      stackId="tokens"
+                      fill="#82ca9d"
+                      name="Chat"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -271,7 +340,9 @@ export default function Settings() {
                   <div className="text-center">
                     <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>No usage data available yet</p>
-                    <p className="text-sm">Start using AI features to see your usage here</p>
+                    <p className="text-sm">
+                      Start using AI features to see your usage here
+                    </p>
                   </div>
                 </div>
               )}

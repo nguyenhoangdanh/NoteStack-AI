@@ -28,16 +28,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("auth_token")
+    localStorage.getItem("auth_token"),
   );
 
   const createUser = useMutation(api.auth.createUser);
   const authenticateUser = useMutation(api.auth.authenticateUser);
   const deleteSession = useMutation(api.auth.deleteSession);
-  
+
   const userFromSession = useQuery(
     api.auth.validateSession,
-    token ? { token } : "skip"
+    token ? { token } : "skip",
   );
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         authProvider: "credentials",
       });
-      
+
       // Auto login after registration
       await login(email, password);
     } catch (error) {

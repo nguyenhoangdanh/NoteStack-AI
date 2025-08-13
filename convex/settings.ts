@@ -36,7 +36,8 @@ export const update = mutation({
       const updates: any = { updatedAt: now };
       if (args.model !== undefined) updates.model = args.model;
       if (args.maxTokens !== undefined) updates.maxTokens = args.maxTokens;
-      if (args.autoReembed !== undefined) updates.autoReembed = args.autoReembed;
+      if (args.autoReembed !== undefined)
+        updates.autoReembed = args.autoReembed;
 
       await ctx.db.patch(existing._id, updates);
       return existing._id;
@@ -64,7 +65,7 @@ export const getUsage = query({
     const days = args.days || 30;
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    const startDateString = startDate.toISOString().split('T')[0];
+    const startDateString = startDate.toISOString().split("T")[0];
 
     return await ctx.db
       .query("usage")

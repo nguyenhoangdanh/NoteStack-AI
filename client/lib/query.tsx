@@ -1,9 +1,19 @@
-import React from 'react';
-import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ConvexProvider, ConvexReactClient } from 'convex/react';
-import { useConvexAuth, useQuery as useConvexQuery, useMutation as useConvexMutation } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
+import React from "react";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
+import {
+  useConvexAuth,
+  useQuery as useConvexQuery,
+  useMutation as useConvexMutation,
+} from "convex/react";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 // Initialize Convex client
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL || "");
@@ -22,9 +32,7 @@ const queryClient = new QueryClient({
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   return (
     <ConvexProvider client={convex}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </ConvexProvider>
   );
 }
@@ -34,7 +42,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const user = useConvexQuery(api.users.current);
-  
+
   return {
     user,
     isLoading,
@@ -67,17 +75,14 @@ export function useUsage(days?: number) {
 }
 
 export function useSearchNotes(query: string) {
-  return useConvexQuery(
-    api.notes.search, 
-    query.trim() ? { query } : "skip"
-  );
+  return useConvexQuery(api.notes.search, query.trim() ? { query } : "skip");
 }
 
 // Mutations
 export function useCreateNote() {
   const queryClient = useQueryClient();
   const createNote = useConvexMutation(api.notes.create);
-  
+
   return useMutation({
     mutationFn: async (data: {
       title: string;
@@ -88,7 +93,7 @@ export function useCreateNote() {
       return await createNote(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
   });
 }
@@ -96,7 +101,7 @@ export function useCreateNote() {
 export function useUpdateNote() {
   const queryClient = useQueryClient();
   const updateNote = useConvexMutation(api.notes.update);
-  
+
   return useMutation({
     mutationFn: async (data: {
       id: Id<"notes">;
@@ -107,7 +112,7 @@ export function useUpdateNote() {
       return await updateNote(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
   });
 }
@@ -115,20 +120,20 @@ export function useUpdateNote() {
 export function useDeleteNote() {
   const queryClient = useQueryClient();
   const deleteNote = useConvexMutation(api.notes.remove);
-  
+
   return useMutation({
     mutationFn: async (noteId: Id<"notes">) => {
       return await deleteNote({ id: noteId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
   });
 }
 
 export function useProcessNoteForRAG() {
   const processNote = useConvexMutation(api.vectors.processNoteForRAG);
-  
+
   return useMutation({
     mutationFn: async (noteId: Id<"notes">) => {
       return await processNote({ noteId });
@@ -139,7 +144,7 @@ export function useProcessNoteForRAG() {
 export function useUpdateSettings() {
   const queryClient = useQueryClient();
   const updateSettings = useConvexMutation(api.settings.update);
-  
+
   return useMutation({
     mutationFn: async (data: {
       model?: string;
@@ -149,7 +154,7 @@ export function useUpdateSettings() {
       return await updateSettings(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
   });
 }
@@ -157,13 +162,13 @@ export function useUpdateSettings() {
 export function useCreateWorkspace() {
   const queryClient = useQueryClient();
   const createWorkspace = useConvexMutation(api.workspaces.create);
-  
+
   return useMutation({
     mutationFn: async (name: string) => {
       return await createWorkspace({ name });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
     },
   });
 }

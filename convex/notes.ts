@@ -18,7 +18,9 @@ export const list = query({
       .order("desc");
 
     if (args.workspaceId) {
-      query = query.filter((q) => q.eq(q.field("workspaceId"), args.workspaceId));
+      query = query.filter((q) =>
+        q.eq(q.field("workspaceId"), args.workspaceId),
+      );
     }
 
     if (args.limit) {
@@ -152,7 +154,10 @@ export const search = query({
     const titleResults = await ctx.db
       .query("notes")
       .withSearchIndex("search_title", (q) =>
-        q.search("title", args.query).eq("ownerId", userId).eq("isDeleted", false)
+        q
+          .search("title", args.query)
+          .eq("ownerId", userId)
+          .eq("isDeleted", false),
       )
       .take(limit);
 
@@ -160,14 +165,18 @@ export const search = query({
     const contentResults = await ctx.db
       .query("notes")
       .withSearchIndex("search_content", (q) =>
-        q.search("content", args.query).eq("ownerId", userId).eq("isDeleted", false)
+        q
+          .search("content", args.query)
+          .eq("ownerId", userId)
+          .eq("isDeleted", false),
       )
       .take(limit);
 
     // Combine and deduplicate results
     const allResults = [...titleResults, ...contentResults];
     const uniqueResults = allResults.filter(
-      (note, index, self) => index === self.findIndex((n) => n._id === note._id)
+      (note, index, self) =>
+        index === self.findIndex((n) => n._id === note._id),
     );
 
     return uniqueResults.slice(0, limit);
