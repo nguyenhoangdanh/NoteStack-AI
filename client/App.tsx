@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Notes from "./pages/Notes";
+import SetupRequired from "./components/SetupRequired";
 import { Loader2 } from "lucide-react";
 
 // Initialize Convex client
@@ -107,13 +108,20 @@ function AppContent() {
 }
 
 export default function App() {
+  const convexUrl = import.meta.env.VITE_CONVEX_URL;
+  const isConfigured = convexUrl && !convexUrl.includes("your-project");
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <ConvexProvider client={convex}>
-        <ConvexAuthProvider>
-          <AppContent />
-        </ConvexAuthProvider>
-      </ConvexProvider>
+      {!isConfigured ? (
+        <SetupRequired />
+      ) : (
+        <ConvexProvider client={convex}>
+          <ConvexAuthProvider>
+            <AppContent />
+          </ConvexAuthProvider>
+        </ConvexProvider>
+      )}
     </ThemeProvider>
   );
 }
