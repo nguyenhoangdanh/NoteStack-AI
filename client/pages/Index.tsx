@@ -10,6 +10,20 @@ import {
 import { FileText, Bot, Search, Zap, Shield, Globe } from "lucide-react";
 
 export default function Index() {
+  const navigate = useNavigate();
+
+  const handleStartWriting = () => {
+    navigate('/notes');
+  };
+
+  const handleTryAIChat = () => {
+    navigate('/notes?chat=true');
+  };
+
+  const handleGetStarted = () => {
+    navigate('/notes');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
@@ -25,7 +39,7 @@ export default function Index() {
             <div className="flex items-center gap-4">
               <Button variant="ghost">Features</Button>
               <Button variant="ghost">Pricing</Button>
-              <Button>Get Started</Button>
+              <Button onClick={handleGetStarted}>Get Started</Button>
             </div>
           </div>
         </div>
@@ -49,11 +63,11 @@ export default function Index() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-lg px-8 py-6">
+              <Button size="lg" className="text-lg px-8 py-6" onClick={handleStartWriting}>
                 <FileText className="w-5 h-5 mr-2" />
                 Start Writing
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6" onClick={handleTryAIChat}>
                 <Bot className="w-5 h-5 mr-2" />
                 Try AI Chat
               </Button>
@@ -164,10 +178,10 @@ export default function Index() {
               their thoughts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-lg px-8 py-6">
+              <Button size="lg" className="text-lg px-8 py-6" onClick={handleStartWriting}>
                 Start Free Trial
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6" onClick={handleTryAIChat}>
                 View Demo
               </Button>
             </div>
