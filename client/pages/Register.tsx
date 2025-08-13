@@ -6,17 +6,20 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
-import { Eye, EyeOff, LogIn, Mail, Lock, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Mail, Lock, User, ArrowLeft } from "lucide-react";
 import { useConvexAuth } from "convex/react";
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
   const { signIn } = useAuthActions();
   const { isAuthenticated, isLoading } = useConvexAuth();
   
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,29 +30,45 @@ export default function Login() {
     }
   }, [isAuthenticated, navigate]);
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignUp = async () => {
     setError("");
     setIsSubmitting(true);
     
     try {
       await signIn("google");
     } catch (err) {
-      setError("Failed to sign in with Google. Please try again.");
+      setError("Failed to sign up with Google. Please try again.");
       console.error(err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEmailSignIn = async (e: React.FormEvent) => {
+  const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await signIn("password", { email, password });
+      await signIn("password", { 
+        email, 
+        password,
+        name,
+        flow: "signUp"
+      });
     } catch (err: any) {
-      setError(err.message || "Failed to sign in. Please check your credentials.");
+      setError(err.message || "Failed to create account. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -81,17 +100,17 @@ export default function Login() {
 
         <div className="text-center mb-8">
           <div className="mx-auto w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
-            <LogIn className="w-6 h-6 text-primary-foreground" />
+            <UserPlus className="w-6 h-6 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
-          <p className="text-muted-foreground mt-2">Sign in to your AI Notes account</p>
+          <h1 className="text-3xl font-bold text-foreground">Create account</h1>
+          <p className="text-muted-foreground mt-2">Join AI Notes and start organizing your thoughts</p>
         </div>
 
         <Card className="shadow-lg border-0 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Sign in</CardTitle>
+            <CardTitle className="text-2xl text-center">Sign up</CardTitle>
             <CardDescription className="text-center">
-              Choose your preferred sign-in method
+              Create your account to get started
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -101,9 +120,9 @@ export default function Login() {
               </Alert>
             )}
 
-            {/* Google Sign In */}
+            {/* Google Sign Up */}
             <Button
-              onClick={handleGoogleSignIn}
+              onClick={handleGoogleSignUp}
               disabled={isSubmitting}
               variant="outline"
               className="w-full"
@@ -135,13 +154,29 @@ export default function Login() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with email
+                  Or create account with email
                 </span>
               </div>
             </div>
 
-            {/* Email/Password Sign In */}
-            <form onSubmit={handleEmailSignIn} className="space-y-4">
+            {/* Email/Password Sign Up */}
+            <form onSubmit={handleEmailSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -165,7 +200,7 @@ export default function Login() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="Create a password (min. 8 characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
@@ -181,27 +216,58 @@ export default function Login() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
+                    Creating account...
                   </div>
                 ) : (
-                  "Sign in"
+                  "Create account"
                 )}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                Already have an account?{" "}
                 <Link
-                  to="/register"
+                  to="/login"
                   className="font-medium text-primary hover:underline"
                 >
-                  Sign up
+                  Sign in
                 </Link>
+              </p>
+            </div>
+
+            <div className="mt-4 text-center">
+              <p className="text-xs text-muted-foreground">
+                By creating an account, you agree to our{" "}
+                <a href="#" className="underline">Terms of Service</a> and{" "}
+                <a href="#" className="underline">Privacy Policy</a>
               </p>
             </div>
           </CardContent>

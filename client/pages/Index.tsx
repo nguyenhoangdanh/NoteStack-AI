@@ -22,7 +22,7 @@ export default function Index() {
   };
 
   const handleGetStarted = () => {
-    navigate("/notes");
+    navigate("/login");
   };
 
   return (
@@ -191,7 +191,7 @@ export default function Index() {
               <Button
                 size="lg"
                 className="text-lg px-8 py-6"
-                onClick={handleStartWriting}
+                onClick={() => navigate("/register")}
               >
                 Start Free Trial
               </Button>
