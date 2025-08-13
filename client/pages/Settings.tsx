@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Save, BarChart3, Settings as SettingsIcon } from 'lucide-react';
+import { Save, BarChart3, Settings as SettingsIcon, Upload, Download } from 'lucide-react';
+import ImportExport from '../components/ImportExport';
 
 const AVAILABLE_MODELS = [
   { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast & Efficient)' },
@@ -78,8 +79,9 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="data">Data & Files</TabsTrigger>
           <TabsTrigger value="usage">Usage & Analytics</TabsTrigger>
         </TabsList>
 
@@ -191,6 +193,10 @@ export default function Settings() {
               </p>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="data" className="space-y-6">
+          <ImportExport />
         </TabsContent>
 
         <TabsContent value="usage" className="space-y-6">
