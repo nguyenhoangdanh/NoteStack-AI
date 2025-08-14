@@ -13,6 +13,7 @@ import NotesDemo from "./pages/NotesDemo";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
+import Signup from "./pages/Signup";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -89,7 +90,7 @@ function AppContent() {
           path="/signup"
           element={
             <PublicRoute>
-              <Register />
+              <Signup />
             </PublicRoute>
           }
         />
