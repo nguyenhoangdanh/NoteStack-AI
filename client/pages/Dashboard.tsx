@@ -1,11 +1,11 @@
-import React from 'react';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { StatsOverview } from '@/components/dashboard/StatsOverview';
-import { NotesList } from '@/components/notes/NotesList';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingUp, Calendar, Target } from 'lucide-react';
+import React from "react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { StatsOverview } from "@/components/dashboard/StatsOverview";
+import { NotesList } from "@/components/notes/NotesList";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { ArrowRight, TrendingUp, Calendar, Target } from "lucide-react";
 
 export default function Dashboard() {
   return (
@@ -16,7 +16,8 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-gradient">Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back! Here's an overview of your AI-powered note-taking activity.
+              Welcome back! Here's an overview of your AI-powered note-taking
+              activity.
             </p>
           </div>
         </div>
@@ -35,7 +36,8 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                You've been quite productive lately! Your note-taking has increased by 23% this week.
+                You've been quite productive lately! Your note-taking has
+                increased by 23% this week.
               </p>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/notes">
@@ -98,7 +100,7 @@ export default function Dashboard() {
               </Link>
             </Button>
           </div>
-          
+
           <NotesList showCreateButton={false} limit={6} />
         </div>
       </div>

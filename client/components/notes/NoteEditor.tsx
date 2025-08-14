@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { X, Save, Loader2 } from 'lucide-react';
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { X, Save, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -16,28 +16,28 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useCreateNote, useUpdateNote } from '@/hooks/useNotes';
-import { useDefaultWorkspace } from '@/hooks/useWorkspaces';
-import { toast } from 'react-hot-toast';
-import type { Note, Workspace } from '@/types';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useCreateNote, useUpdateNote } from "@/hooks/useNotes";
+import { useDefaultWorkspace } from "@/hooks/useWorkspaces";
+import { toast } from "react-hot-toast";
+import type { Note, Workspace } from "@/types";
 
 const noteFormSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
-  content: z.string().min(1, 'Content is required'),
+  title: z.string().min(1, "Title is required").max(200, "Title too long"),
+  content: z.string().min(1, "Content is required"),
   tags: z.string(),
-  workspaceId: z.string().min(1, 'Workspace is required'),
+  workspaceId: z.string().min(1, "Workspace is required"),
 });
 
 type NoteFormData = z.infer<typeof noteFormSchema>;
@@ -49,7 +49,12 @@ interface NoteEditorProps {
   workspaces: Workspace[];
 }
 
-export function NoteEditor({ note, isOpen, onClose, workspaces }: NoteEditorProps) {
+export function NoteEditor({
+  note,
+  isOpen,
+  onClose,
+  workspaces,
+}: NoteEditorProps) {
   const createNote = useCreateNote();
   const updateNote = useUpdateNote();
   const { data: defaultWorkspace } = useDefaultWorkspace();
@@ -60,10 +65,10 @@ export function NoteEditor({ note, isOpen, onClose, workspaces }: NoteEditorProp
   const form = useForm<NoteFormData>({
     resolver: zodResolver(noteFormSchema),
     defaultValues: {
-      title: '',
-      content: '',
-      tags: '',
-      workspaceId: '',
+      title: "",
+      content: "",
+      tags: "",
+      workspaceId: "",
     },
   });
 
@@ -74,15 +79,15 @@ export function NoteEditor({ note, isOpen, onClose, workspaces }: NoteEditorProp
         form.reset({
           title: note.title,
           content: note.content,
-          tags: note.tags.join(', '),
+          tags: note.tags.join(", "),
           workspaceId: note.workspaceId,
         });
       } else {
         form.reset({
-          title: '',
-          content: '',
-          tags: '',
-          workspaceId: defaultWorkspace?.id || workspaces[0]?.id || '',
+          title: "",
+          content: "",
+          tags: "",
+          workspaceId: defaultWorkspace?.id || workspaces[0]?.id || "",
         });
       }
     }
@@ -91,9 +96,9 @@ export function NoteEditor({ note, isOpen, onClose, workspaces }: NoteEditorProp
   const onSubmit = async (data: NoteFormData) => {
     try {
       const tags = data.tags
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag.length > 0);
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
 
       if (isEditing && note) {
         await updateNote.mutateAsync({
@@ -103,7 +108,7 @@ export function NoteEditor({ note, isOpen, onClose, workspaces }: NoteEditorProp
           tags,
           workspaceId: data.workspaceId,
         });
-        toast.success('Note updated successfully');
+        toast.success("Note updated successfully");
       } else {
         await createNote.mutateAsync({
           title: data.title,
@@ -111,29 +116,31 @@ export function NoteEditor({ note, isOpen, onClose, workspaces }: NoteEditorProp
           tags,
           workspaceId: data.workspaceId,
         });
-        toast.success('Note created successfully');
+        toast.success("Note created successfully");
       }
       onClose();
     } catch (error) {
-      toast.error(isEditing ? 'Failed to update note' : 'Failed to create note');
+      toast.error(
+        isEditing ? "Failed to update note" : "Failed to create note",
+      );
     }
   };
 
   const parseTags = (tagsString: string) => {
     return tagsString
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0);
   };
 
-  const currentTags = parseTags(form.watch('tags') || '');
+  const currentTags = parseTags(form.watch("tags") || "");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            {isEditing ? 'Edit Note' : 'Create New Note'}
+            {isEditing ? "Edit Note" : "Create New Note"}
             <Button
               variant="ghost"
               size="sm"
@@ -244,9 +251,13 @@ export function NoteEditor({ note, isOpen, onClose, workspaces }: NoteEditorProp
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading} className="btn-gradient">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="btn-gradient"
+              >
                 {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isEditing ? 'Update Note' : 'Create Note'}
+                {isEditing ? "Update Note" : "Create Note"}
               </Button>
             </div>
           </form>

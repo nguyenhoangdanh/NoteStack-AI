@@ -1,19 +1,25 @@
-import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { MoreHorizontal, Edit, Trash2, Calendar, FolderOpen } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { formatDistanceToNow } from "date-fns";
+import {
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Calendar,
+  FolderOpen,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useDeleteNote } from '@/hooks/useNotes';
-import { toast } from 'react-hot-toast';
-import type { Note } from '@/types';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/dropdown-menu";
+import { useDeleteNote } from "@/hooks/useNotes";
+import { toast } from "react-hot-toast";
+import type { Note } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface NoteCardProps {
   note: Note;
@@ -29,34 +35,34 @@ export function NoteCard({ note, onEdit, className }: NoteCardProps) {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this note?')) {
+    if (window.confirm("Are you sure you want to delete this note?")) {
       try {
         await deleteNote.mutateAsync(note.id);
-        toast.success('Note deleted successfully');
+        toast.success("Note deleted successfully");
       } catch (error) {
-        toast.error('Failed to delete note');
+        toast.error("Failed to delete note");
       }
     }
   };
 
   const truncateContent = (content: string, maxLength: number = 150) => {
     if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength) + '...';
+    return content.substring(0, maxLength) + "...";
   };
 
   const formatDate = (dateString: string) => {
     try {
       return formatDistanceToNow(new Date(dateString), { addSuffix: true });
     } catch {
-      return 'Unknown date';
+      return "Unknown date";
     }
   };
 
   return (
-    <Card 
+    <Card
       className={cn(
         "card-gradient transition-all duration-200 hover:shadow-lg hover:scale-[1.02] cursor-pointer",
-        className
+        className,
       )}
       onClick={handleEdit}
     >
@@ -123,7 +129,7 @@ export function NoteCard({ note, onEdit, className }: NoteCardProps) {
           <div className="flex items-center gap-1">
             <FolderOpen className="h-3 w-3" />
             <span className="truncate max-w-20">
-              {note.workspace?.name || 'Unknown'}
+              {note.workspace?.name || "Unknown"}
             </span>
           </div>
           <div className="flex items-center gap-1">

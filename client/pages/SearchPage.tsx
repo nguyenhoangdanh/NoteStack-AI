@@ -1,59 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Clock, Tag, FolderOpen, SortAsc, SortDesc } from 'lucide-react';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  Filter,
+  Clock,
+  Tag,
+  FolderOpen,
+  SortAsc,
+  SortDesc,
+} from "lucide-react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { NoteCard } from '@/components/notes/NoteCard';
-import { useSearchNotes } from '@/hooks/useNotes';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCategories } from '@/hooks/useCategories';
-import type { Note } from '@/types';
+} from "@/components/ui/select";
+import { NoteCard } from "@/components/notes/NoteCard";
+import { useSearchNotes } from "@/hooks/useNotes";
+import { useWorkspaces } from "@/hooks/useWorkspaces";
+import { useCategories } from "@/hooks/useCategories";
+import type { Note } from "@/types";
 
 // Mock search results
 const mockSearchResults: Note[] = [
   {
-    id: '1',
-    title: 'React Best Practices',
-    content: 'Key principles for writing maintainable React code including component composition, state management patterns, and performance optimization techniques. These practices help ensure your codebase remains scalable and maintainable.',
-    tags: ['react', 'frontend', 'best-practices'],
-    workspaceId: 'workspace-1',
-    ownerId: 'user-1',
+    id: "1",
+    title: "React Best Practices",
+    content:
+      "Key principles for writing maintainable React code including component composition, state management patterns, and performance optimization techniques. These practices help ensure your codebase remains scalable and maintainable.",
+    tags: ["react", "frontend", "best-practices"],
+    workspaceId: "workspace-1",
+    ownerId: "user-1",
     isDeleted: false,
-    createdAt: '2024-01-15T10:30:00Z',
-    updatedAt: '2024-01-15T14:20:00Z',
-    workspace: { id: 'workspace-1', name: 'Development' }
+    createdAt: "2024-01-15T10:30:00Z",
+    updatedAt: "2024-01-15T14:20:00Z",
+    workspace: { id: "workspace-1", name: "Development" },
   },
   {
-    id: '2',
-    title: 'TypeScript Advanced Patterns',
-    content: 'Advanced TypeScript patterns including conditional types, mapped types, and template literal types for better type safety and developer experience. These patterns unlock powerful type-level programming.',
-    tags: ['typescript', 'patterns', 'advanced'],
-    workspaceId: 'workspace-1',
-    ownerId: 'user-1',
+    id: "2",
+    title: "TypeScript Advanced Patterns",
+    content:
+      "Advanced TypeScript patterns including conditional types, mapped types, and template literal types for better type safety and developer experience. These patterns unlock powerful type-level programming.",
+    tags: ["typescript", "patterns", "advanced"],
+    workspaceId: "workspace-1",
+    ownerId: "user-1",
     isDeleted: false,
-    createdAt: '2024-01-13T11:20:00Z',
-    updatedAt: '2024-01-13T15:30:00Z',
-    workspace: { id: 'workspace-1', name: 'Development' }
+    createdAt: "2024-01-13T11:20:00Z",
+    updatedAt: "2024-01-13T15:30:00Z",
+    workspace: { id: "workspace-1", name: "Development" },
   },
 ];
 
 export default function SearchPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedWorkspace, setSelectedWorkspace] = useState<string>('all');
-  const [selectedTag, setSelectedTag] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('updated');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string>("all");
+  const [selectedTag, setSelectedTag] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("updated");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   const { data: workspaces } = useWorkspaces();
@@ -68,47 +78,53 @@ export default function SearchPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: searchResults, isLoading, error } = useSearchNotes(
-    { q: debouncedQuery },
-    debouncedQuery.length > 0
-  );
+  const {
+    data: searchResults,
+    isLoading,
+    error,
+  } = useSearchNotes({ q: debouncedQuery }, debouncedQuery.length > 0);
 
   // Use actual data if available, otherwise fallback to mock data
   const results = searchResults || (debouncedQuery ? mockSearchResults : []);
 
   // Apply filters and sorting
   const filteredAndSortedResults = results
-    .filter(note => {
-      if (selectedWorkspace !== 'all' && note.workspaceId !== selectedWorkspace) {
+    .filter((note) => {
+      if (
+        selectedWorkspace !== "all" &&
+        note.workspaceId !== selectedWorkspace
+      ) {
         return false;
       }
-      if (selectedTag !== 'all' && !note.tags.includes(selectedTag)) {
+      if (selectedTag !== "all" && !note.tags.includes(selectedTag)) {
         return false;
       }
       return true;
     })
     .sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortBy) {
-        case 'title':
+        case "title":
           comparison = a.title.localeCompare(b.title);
           break;
-        case 'created':
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "created":
+          comparison =
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
           break;
-        case 'updated':
+        case "updated":
         default:
-          comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+          comparison =
+            new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
           break;
       }
-      
-      return sortOrder === 'desc' ? -comparison : comparison;
+
+      return sortOrder === "desc" ? -comparison : comparison;
     });
 
   // Get all unique tags from results
   const availableTags = Array.from(
-    new Set(results.flatMap(note => note.tags))
+    new Set(results.flatMap((note) => note.tags)),
   ).sort();
 
   const handleEditNote = (note: Note) => {
@@ -116,11 +132,11 @@ export default function SearchPage() {
   };
 
   const handleClearFilters = () => {
-    setSearchQuery('');
-    setSelectedWorkspace('all');
-    setSelectedTag('all');
-    setSortBy('updated');
-    setSortOrder('desc');
+    setSearchQuery("");
+    setSelectedWorkspace("all");
+    setSelectedTag("all");
+    setSortBy("updated");
+    setSortOrder("desc");
   };
 
   return (
@@ -130,7 +146,8 @@ export default function SearchPage() {
         <div>
           <h1 className="text-3xl font-bold text-gradient">Search</h1>
           <p className="text-muted-foreground">
-            Find notes using AI-powered search. Search by content, tags, or use advanced filters.
+            Find notes using AI-powered search. Search by content, tags, or use
+            advanced filters.
           </p>
         </div>
 
@@ -162,7 +179,10 @@ export default function SearchPage() {
               {/* Workspace Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Workspace</label>
-                <Select value={selectedWorkspace} onValueChange={setSelectedWorkspace}>
+                <Select
+                  value={selectedWorkspace}
+                  onValueChange={setSelectedWorkspace}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -221,10 +241,12 @@ export default function SearchPage() {
                 <label className="text-sm font-medium">Order</label>
                 <Button
                   variant="outline"
-                  onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+                  onClick={() =>
+                    setSortOrder(sortOrder === "desc" ? "asc" : "desc")
+                  }
                   className="w-full justify-start"
                 >
-                  {sortOrder === 'desc' ? (
+                  {sortOrder === "desc" ? (
                     <>
                       <SortDesc className="h-4 w-4 mr-2" />
                       Descending
@@ -241,25 +263,33 @@ export default function SearchPage() {
 
             {/* Active Filters */}
             <div className="mt-4 flex items-center gap-2">
-              {(selectedWorkspace !== 'all' || selectedTag !== 'all' || searchQuery) && (
+              {(selectedWorkspace !== "all" ||
+                selectedTag !== "all" ||
+                searchQuery) && (
                 <>
-                  <span className="text-sm text-muted-foreground">Active filters:</span>
+                  <span className="text-sm text-muted-foreground">
+                    Active filters:
+                  </span>
                   {searchQuery && (
+                    <Badge variant="secondary">Search: "{searchQuery}"</Badge>
+                  )}
+                  {selectedWorkspace !== "all" && (
                     <Badge variant="secondary">
-                      Search: "{searchQuery}"
+                      Workspace:{" "}
+                      {
+                        workspaces?.find((w) => w.id === selectedWorkspace)
+                          ?.name
+                      }
                     </Badge>
                   )}
-                  {selectedWorkspace !== 'all' && (
-                    <Badge variant="secondary">
-                      Workspace: {workspaces?.find(w => w.id === selectedWorkspace)?.name}
-                    </Badge>
+                  {selectedTag !== "all" && (
+                    <Badge variant="secondary">Tag: {selectedTag}</Badge>
                   )}
-                  {selectedTag !== 'all' && (
-                    <Badge variant="secondary">
-                      Tag: {selectedTag}
-                    </Badge>
-                  )}
-                  <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearFilters}
+                  >
                     Clear All
                   </Button>
                 </>
@@ -273,11 +303,14 @@ export default function SearchPage() {
           {/* Results Header */}
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">
-              {debouncedQuery ? `Search Results (${filteredAndSortedResults.length})` : 'Recent Notes'}
+              {debouncedQuery
+                ? `Search Results (${filteredAndSortedResults.length})`
+                : "Recent Notes"}
             </h2>
             {filteredAndSortedResults.length > 0 && (
               <Badge variant="outline">
-                {filteredAndSortedResults.length} result{filteredAndSortedResults.length !== 1 ? 's' : ''}
+                {filteredAndSortedResults.length} result
+                {filteredAndSortedResults.length !== 1 ? "s" : ""}
               </Badge>
             )}
           </div>
@@ -307,7 +340,9 @@ export default function SearchPage() {
           {error && (
             <Card>
               <CardContent className="flex items-center justify-center h-32">
-                <p className="text-muted-foreground">Search failed. Please try again.</p>
+                <p className="text-muted-foreground">
+                  Search failed. Please try again.
+                </p>
               </CardContent>
             </Card>
           )}
@@ -318,13 +353,12 @@ export default function SearchPage() {
               <CardContent className="flex flex-col items-center justify-center h-48">
                 <Search className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">
-                  {debouncedQuery ? 'No results found' : 'Start searching'}
+                  {debouncedQuery ? "No results found" : "Start searching"}
                 </h3>
                 <p className="text-muted-foreground text-center">
-                  {debouncedQuery 
-                    ? 'Try adjusting your search query or filters'
-                    : 'Enter a search query to find your notes'
-                  }
+                  {debouncedQuery
+                    ? "Try adjusting your search query or filters"
+                    : "Enter a search query to find your notes"}
                 </p>
               </CardContent>
             </Card>
@@ -334,11 +368,7 @@ export default function SearchPage() {
           {!isLoading && !error && filteredAndSortedResults.length > 0 && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedResults.map((note) => (
-                <NoteCard
-                  key={note.id}
-                  note={note}
-                  onEdit={handleEditNote}
-                />
+                <NoteCard key={note.id} note={note} onEdit={handleEditNote} />
               ))}
             </div>
           )}

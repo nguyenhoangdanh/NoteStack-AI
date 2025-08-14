@@ -1,22 +1,31 @@
-import React, { useState } from 'react';
-import { BarChart3, TrendingUp, Users, FileText, Calendar, Activity, Target, Zap } from 'lucide-react';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useState } from "react";
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  FileText,
+  Calendar,
+  Activity,
+  Target,
+  Zap,
+} from "lucide-react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useActivityStats, useTrendingActivities } from '@/hooks/useActivities';
-import { useUsage } from '@/hooks/useSettings';
-import { useUserShareStats } from '@/hooks/useSharing';
-import { useAttachmentAnalytics } from '@/hooks/useAttachments';
-import { useTagAnalytics } from '@/hooks/useTags';
+} from "@/components/ui/select";
+import { useActivityStats, useTrendingActivities } from "@/hooks/useActivities";
+import { useUsage } from "@/hooks/useSettings";
+import { useUserShareStats } from "@/hooks/useSharing";
+import { useAttachmentAnalytics } from "@/hooks/useAttachments";
+import { useTagAnalytics } from "@/hooks/useTags";
 
 // Mock analytics data
 const mockActivityData = {
@@ -30,9 +39,9 @@ const mockActivityData = {
     DELETE: 46,
   },
   mostActiveNotes: [
-    { noteId: '1', title: 'React Best Practices', activityCount: 45 },
-    { noteId: '2', title: 'AI Integration Guide', activityCount: 38 },
-    { noteId: '3', title: 'TypeScript Patterns', activityCount: 32 },
+    { noteId: "1", title: "React Best Practices", activityCount: 45 },
+    { noteId: "2", title: "AI Integration Guide", activityCount: 38 },
+    { noteId: "3", title: "TypeScript Patterns", activityCount: 32 },
   ],
 };
 
@@ -49,39 +58,60 @@ const mockUsageData = {
 
 const mockTrendingData = {
   notes: [
-    { noteId: '1', title: 'React Hooks Deep Dive', score: 95, actions: { VIEW: 23, UPDATE: 12 } },
-    { noteId: '2', title: 'AI Notes Architecture', score: 87, actions: { VIEW: 19, UPDATE: 8 } },
-    { noteId: '3', title: 'Database Design Patterns', score: 82, actions: { VIEW: 15, UPDATE: 6 } },
+    {
+      noteId: "1",
+      title: "React Hooks Deep Dive",
+      score: 95,
+      actions: { VIEW: 23, UPDATE: 12 },
+    },
+    {
+      noteId: "2",
+      title: "AI Notes Architecture",
+      score: 87,
+      actions: { VIEW: 19, UPDATE: 8 },
+    },
+    {
+      noteId: "3",
+      title: "Database Design Patterns",
+      score: 82,
+      actions: { VIEW: 15, UPDATE: 6 },
+    },
   ],
   actions: [
-    { action: 'VIEW', count: 198 },
-    { action: 'UPDATE', count: 145 },
-    { action: 'CREATE', count: 67 },
-    { action: 'SEARCH', count: 89 },
+    { action: "VIEW", count: 198 },
+    { action: "UPDATE", count: 145 },
+    { action: "CREATE", count: 67 },
+    { action: "SEARCH", count: 89 },
   ],
 };
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState('30');
-  
-  const { data: activityStats, isLoading: activityLoading } = useActivityStats();
-  const { data: trendingData, isLoading: trendingLoading } = useTrendingActivities({ 
-    window: '30d', 
-    limit: 10 
-  });
-  const { data: usageData, isLoading: usageLoading } = useUsage(parseInt(timeRange));
-  const { data: shareStats, isLoading: shareLoading } = useUserShareStats();
-  const { data: attachmentAnalytics, isLoading: attachmentLoading } = useAttachmentAnalytics(
-    parseInt(timeRange)
+  const [timeRange, setTimeRange] = useState("30");
+
+  const { data: activityStats, isLoading: activityLoading } =
+    useActivityStats();
+  const { data: trendingData, isLoading: trendingLoading } =
+    useTrendingActivities({
+      window: "30d",
+      limit: 10,
+    });
+  const { data: usageData, isLoading: usageLoading } = useUsage(
+    parseInt(timeRange),
   );
-  const { data: tagAnalytics, isLoading: tagLoading } = useTagAnalytics(parseInt(timeRange));
+  const { data: shareStats, isLoading: shareLoading } = useUserShareStats();
+  const { data: attachmentAnalytics, isLoading: attachmentLoading } =
+    useAttachmentAnalytics(parseInt(timeRange));
+  const { data: tagAnalytics, isLoading: tagLoading } = useTagAnalytics(
+    parseInt(timeRange),
+  );
 
   // Use actual data if available, otherwise fallback to mock data
   const finalActivityStats = activityStats || mockActivityData;
   const finalTrendingData = trendingData || mockTrendingData;
   const finalUsageData = usageData || mockUsageData;
 
-  const isLoading = activityLoading || trendingLoading || usageLoading || shareLoading;
+  const isLoading =
+    activityLoading || trendingLoading || usageLoading || shareLoading;
 
   return (
     <DashboardLayout>
@@ -94,7 +124,8 @@ export default function AnalyticsPage() {
               Analytics & Insights
             </h1>
             <p className="text-muted-foreground">
-              Track your productivity, understand usage patterns, and optimize your workflow
+              Track your productivity, understand usage patterns, and optimize
+              your workflow
             </p>
           </div>
           <div className="flex gap-2">
@@ -108,9 +139,7 @@ export default function AnalyticsPage() {
                 <SelectItem value="90">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline">
-              Export Report
-            </Button>
+            <Button variant="outline">Export Report</Button>
           </div>
         </div>
 
@@ -123,8 +152,12 @@ export default function AnalyticsPage() {
                   <Activity className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{finalActivityStats.totalActivities}</p>
-                  <p className="text-sm text-muted-foreground">Total Activities</p>
+                  <p className="text-2xl font-bold">
+                    {finalActivityStats.totalActivities}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Activities
+                  </p>
                 </div>
               </div>
               <div className="mt-4">
@@ -142,7 +175,9 @@ export default function AnalyticsPage() {
                   <TrendingUp className="h-6 w-6 text-success" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{finalUsageData.notesCreated}</p>
+                  <p className="text-2xl font-bold">
+                    {finalUsageData.notesCreated}
+                  </p>
                   <p className="text-sm text-muted-foreground">Notes Created</p>
                 </div>
               </div>
@@ -161,8 +196,12 @@ export default function AnalyticsPage() {
                   <Zap className="h-6 w-6 text-warning" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{finalUsageData.aiInteractions}</p>
-                  <p className="text-sm text-muted-foreground">AI Interactions</p>
+                  <p className="text-2xl font-bold">
+                    {finalUsageData.aiInteractions}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    AI Interactions
+                  </p>
                 </div>
               </div>
               <div className="mt-4">
@@ -180,8 +219,12 @@ export default function AnalyticsPage() {
                   <Users className="h-6 w-6 text-info" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{finalUsageData.collaborationSessions}</p>
-                  <p className="text-sm text-muted-foreground">Collaborations</p>
+                  <p className="text-2xl font-bold">
+                    {finalUsageData.collaborationSessions}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Collaborations
+                  </p>
                 </div>
               </div>
               <div className="mt-4">
@@ -212,26 +255,31 @@ export default function AnalyticsPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {Object.entries(finalActivityStats.byAction).map(([action, count]) => (
-                    <div key={action} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ 
-                            backgroundColor: {
-                              CREATE: '#10B981',
-                              UPDATE: '#3B82F6', 
-                              VIEW: '#8B5CF6',
-                              SEARCH: '#F59E0B',
-                              DELETE: '#EF4444'
-                            }[action] 
-                          }}
-                        />
-                        <span className="text-sm font-medium">{action}</span>
+                  {Object.entries(finalActivityStats.byAction).map(
+                    ([action, count]) => (
+                      <div
+                        key={action}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{
+                              backgroundColor: {
+                                CREATE: "#10B981",
+                                UPDATE: "#3B82F6",
+                                VIEW: "#8B5CF6",
+                                SEARCH: "#F59E0B",
+                                DELETE: "#EF4444",
+                              }[action],
+                            }}
+                          />
+                          <span className="text-sm font-medium">{action}</span>
+                        </div>
+                        <Badge variant="outline">{count}</Badge>
                       </div>
-                      <Badge variant="outline">{count}</Badge>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               )}
             </CardContent>
@@ -255,7 +303,10 @@ export default function AnalyticsPage() {
               ) : (
                 <div className="space-y-3">
                   {finalActivityStats.mostActiveNotes.map((note, index) => (
-                    <div key={note.noteId} className="p-3 rounded-lg bg-muted/50">
+                    <div
+                      key={note.noteId}
+                      className="p-3 rounded-lg bg-muted/50"
+                    >
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-sm">{note.title}</p>
@@ -263,7 +314,7 @@ export default function AnalyticsPage() {
                             {note.activityCount} activities
                           </p>
                         </div>
-                        <Badge variant={index === 0 ? 'default' : 'secondary'}>
+                        <Badge variant={index === 0 ? "default" : "secondary"}>
                           #{index + 1}
                         </Badge>
                       </div>
@@ -302,18 +353,28 @@ export default function AnalyticsPage() {
                 {finalTrendingData.notes.map((note, index) => (
                   <div key={note.noteId} className="p-4 rounded-lg bg-muted/50">
                     <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-medium text-sm line-clamp-2">{note.title}</h4>
-                      <Badge variant={index < 3 ? 'default' : 'secondary'}>
+                      <h4 className="font-medium text-sm line-clamp-2">
+                        {note.title}
+                      </h4>
+                      <Badge variant={index < 3 ? "default" : "secondary"}>
                         #{index + 1}
                       </Badge>
                     </div>
                     <div className="mb-3">
-                      <div className="text-2xl font-bold text-primary">{note.score}</div>
-                      <div className="text-xs text-muted-foreground">Trending Score</div>
+                      <div className="text-2xl font-bold text-primary">
+                        {note.score}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Trending Score
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       {Object.entries(note.actions).map(([action, count]) => (
-                        <Badge key={action} variant="outline" className="text-xs">
+                        <Badge
+                          key={action}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {action}: {count}
                         </Badge>
                       ))}
@@ -338,12 +399,14 @@ export default function AnalyticsPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Search Queries</span>
-                  <Badge variant="outline">{finalUsageData.searchQueries}</Badge>
+                  <Badge variant="outline">
+                    {finalUsageData.searchQueries}
+                  </Badge>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full" 
-                    style={{ width: '78%' }}
+                  <div
+                    className="bg-primary h-2 rounded-full"
+                    style={{ width: "78%" }}
                   />
                 </div>
               </div>
@@ -351,25 +414,31 @@ export default function AnalyticsPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Templates Used</span>
-                  <Badge variant="outline">{finalUsageData.templatesUsed}</Badge>
+                  <Badge variant="outline">
+                    {finalUsageData.templatesUsed}
+                  </Badge>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-success h-2 rounded-full" 
-                    style={{ width: '45%' }}
+                  <div
+                    className="bg-success h-2 rounded-full"
+                    style={{ width: "45%" }}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Summaries Generated</span>
-                  <Badge variant="outline">{finalUsageData.summariesGenerated}</Badge>
+                  <span className="text-sm font-medium">
+                    Summaries Generated
+                  </span>
+                  <Badge variant="outline">
+                    {finalUsageData.summariesGenerated}
+                  </Badge>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-warning h-2 rounded-full" 
-                    style={{ width: '62%' }}
+                  <div
+                    className="bg-warning h-2 rounded-full"
+                    style={{ width: "62%" }}
                   />
                 </div>
               </div>
@@ -377,12 +446,14 @@ export default function AnalyticsPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Attachments</span>
-                  <Badge variant="outline">{finalUsageData.attachmentsUploaded}</Badge>
+                  <Badge variant="outline">
+                    {finalUsageData.attachmentsUploaded}
+                  </Badge>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-info h-2 rounded-full" 
-                    style={{ width: '38%' }}
+                  <div
+                    className="bg-info h-2 rounded-full"
+                    style={{ width: "38%" }}
                   />
                 </div>
               </div>

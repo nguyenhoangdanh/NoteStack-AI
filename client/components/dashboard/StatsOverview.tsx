@@ -1,39 +1,39 @@
-import React from 'react';
-import { FileText, FolderOpen, Tags, Activity } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNotes } from '@/hooks/useNotes';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCategories } from '@/hooks/useCategories';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from "react";
+import { FileText, FolderOpen, Tags, Activity } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNotes } from "@/hooks/useNotes";
+import { useWorkspaces } from "@/hooks/useWorkspaces";
+import { useCategories } from "@/hooks/useCategories";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const mockStats = [
   {
-    title: 'Total Notes',
+    title: "Total Notes",
     value: 142,
     icon: FileText,
-    change: '+12%',
-    changeType: 'positive' as const,
+    change: "+12%",
+    changeType: "positive" as const,
   },
   {
-    title: 'Workspaces',
+    title: "Workspaces",
     value: 8,
     icon: FolderOpen,
-    change: '+2%',
-    changeType: 'positive' as const,
+    change: "+2%",
+    changeType: "positive" as const,
   },
   {
-    title: 'Categories',
+    title: "Categories",
     value: 23,
     icon: Tags,
-    change: '+5%',
-    changeType: 'positive' as const,
+    change: "+5%",
+    changeType: "positive" as const,
   },
   {
-    title: 'Activity Score',
+    title: "Activity Score",
     value: 89,
     icon: Activity,
-    change: '+8%',
-    changeType: 'positive' as const,
+    change: "+8%",
+    changeType: "positive" as const,
   },
 ];
 
@@ -45,32 +45,32 @@ export function StatsOverview() {
   // Use actual data if available, otherwise fallback to mock data
   const stats = [
     {
-      title: 'Total Notes',
+      title: "Total Notes",
       value: notes?.length ?? mockStats[0].value,
       icon: FileText,
-      change: '+12%',
-      changeType: 'positive' as const,
+      change: "+12%",
+      changeType: "positive" as const,
     },
     {
-      title: 'Workspaces',
+      title: "Workspaces",
       value: workspaces?.length ?? mockStats[1].value,
       icon: FolderOpen,
-      change: '+2%',
-      changeType: 'positive' as const,
+      change: "+2%",
+      changeType: "positive" as const,
     },
     {
-      title: 'Categories',
+      title: "Categories",
       value: categories?.length ?? mockStats[2].value,
       icon: Tags,
-      change: '+5%',
-      changeType: 'positive' as const,
+      change: "+5%",
+      changeType: "positive" as const,
     },
     {
-      title: 'Activity Score',
+      title: "Activity Score",
       value: mockStats[3].value,
       icon: Activity,
-      change: '+8%',
-      changeType: 'positive' as const,
+      change: "+8%",
+      changeType: "positive" as const,
     },
   ];
 
@@ -110,9 +110,15 @@ export function StatsOverview() {
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
               <p className="text-xs text-muted-foreground">
-                <span className={stat.changeType === 'positive' ? 'text-success' : 'text-destructive'}>
+                <span
+                  className={
+                    stat.changeType === "positive"
+                      ? "text-success"
+                      : "text-destructive"
+                  }
+                >
                   {stat.change}
-                </span>{' '}
+                </span>{" "}
                 from last month
               </p>
             </CardContent>

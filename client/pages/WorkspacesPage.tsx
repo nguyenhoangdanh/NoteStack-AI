@@ -1,47 +1,57 @@
-import React, { useState } from 'react';
-import { Plus, FolderOpen, Users, Star, Edit, Trash2, FileText } from 'lucide-react';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useNotes } from '@/hooks/useNotes';
-import { toast } from 'react-hot-toast';
-import type { Workspace } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
+import React, { useState } from "react";
+import {
+  Plus,
+  FolderOpen,
+  Users,
+  Star,
+  Edit,
+  Trash2,
+  FileText,
+} from "lucide-react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspaces } from "@/hooks/useWorkspaces";
+import { useNotes } from "@/hooks/useNotes";
+import { toast } from "react-hot-toast";
+import type { Workspace } from "@/types";
+import { formatDistanceToNow } from "date-fns";
 
 // Mock workspaces data
 const mockWorkspaces: Workspace[] = [
   {
-    id: 'workspace-1',
-    name: 'Development',
-    ownerId: 'user-1',
+    id: "workspace-1",
+    name: "Development",
+    ownerId: "user-1",
     isDefault: true,
-    createdAt: '2024-01-10T10:30:00Z',
-    updatedAt: '2024-01-15T14:20:00Z',
+    createdAt: "2024-01-10T10:30:00Z",
+    updatedAt: "2024-01-15T14:20:00Z",
   },
   {
-    id: 'workspace-2',
-    name: 'Research',
-    ownerId: 'user-1',
+    id: "workspace-2",
+    name: "Research",
+    ownerId: "user-1",
     isDefault: false,
-    createdAt: '2024-01-12T09:15:00Z',
-    updatedAt: '2024-01-14T16:45:00Z',
+    createdAt: "2024-01-12T09:15:00Z",
+    updatedAt: "2024-01-14T16:45:00Z",
   },
   {
-    id: 'workspace-3',
-    name: 'Personal Projects',
-    ownerId: 'user-1',
+    id: "workspace-3",
+    name: "Personal Projects",
+    ownerId: "user-1",
     isDefault: false,
-    createdAt: '2024-01-08T11:20:00Z',
-    updatedAt: '2024-01-13T15:30:00Z',
+    createdAt: "2024-01-08T11:20:00Z",
+    updatedAt: "2024-01-13T15:30:00Z",
   },
 ];
 
 export default function WorkspacesPage() {
-  const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
-  
+  const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
+    null,
+  );
+
   const { data: workspaces, isLoading, error } = useWorkspaces();
   const { data: allNotes } = useNotes();
 
@@ -51,16 +61,20 @@ export default function WorkspacesPage() {
   // Count notes per workspace
   const getNotesCount = (workspaceId: string) => {
     if (!allNotes) return Math.floor(Math.random() * 20) + 5; // Mock count
-    return allNotes.filter(note => note.workspaceId === workspaceId).length;
+    return allNotes.filter((note) => note.workspaceId === workspaceId).length;
   };
 
   const handleDeleteWorkspace = async (workspaceId: string) => {
-    if (window.confirm('Are you sure you want to delete this workspace? All notes in this workspace will be moved to your default workspace.')) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this workspace? All notes in this workspace will be moved to your default workspace.",
+      )
+    ) {
       try {
         // Note: Implement delete workspace functionality
-        toast.success('Workspace deleted successfully');
+        toast.success("Workspace deleted successfully");
       } catch (error) {
-        toast.error('Failed to delete workspace');
+        toast.error("Failed to delete workspace");
       }
     }
   };
@@ -69,7 +83,7 @@ export default function WorkspacesPage() {
     try {
       return formatDistanceToNow(new Date(dateString), { addSuffix: true });
     } catch {
-      return 'Unknown date';
+      return "Unknown date";
     }
   };
 
@@ -104,7 +118,9 @@ export default function WorkspacesPage() {
       <DashboardLayout>
         <Card>
           <CardContent className="flex items-center justify-center h-32">
-            <p className="text-muted-foreground">Failed to load workspaces. Please try again.</p>
+            <p className="text-muted-foreground">
+              Failed to load workspaces. Please try again.
+            </p>
           </CardContent>
         </Card>
       </DashboardLayout>
@@ -119,7 +135,8 @@ export default function WorkspacesPage() {
           <div>
             <h1 className="text-3xl font-bold text-gradient">Workspaces</h1>
             <p className="text-muted-foreground">
-              Organize your notes into separate workspaces for different projects, topics, or teams.
+              Organize your notes into separate workspaces for different
+              projects, topics, or teams.
             </p>
           </div>
           <Button className="btn-gradient">
@@ -138,7 +155,9 @@ export default function WorkspacesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{finalWorkspaces.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Workspaces</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Workspaces
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -152,7 +171,10 @@ export default function WorkspacesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {finalWorkspaces.reduce((total, ws) => total + getNotesCount(ws.id), 0)}
+                    {finalWorkspaces.reduce(
+                      (total, ws) => total + getNotesCount(ws.id),
+                      0,
+                    )}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Notes</p>
                 </div>
@@ -195,8 +217,8 @@ export default function WorkspacesPage() {
             {finalWorkspaces.map((workspace) => {
               const notesCount = getNotesCount(workspace.id);
               return (
-                <Card 
-                  key={workspace.id} 
+                <Card
+                  key={workspace.id}
                   className="card-gradient transition-all duration-200 hover:shadow-lg cursor-pointer"
                   onClick={() => setSelectedWorkspace(workspace)}
                 >
@@ -251,10 +273,12 @@ export default function WorkspacesPage() {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Notes</span>
+                        <span className="text-sm text-muted-foreground">
+                          Notes
+                        </span>
                         <Badge variant="outline">{notesCount}</Badge>
                       </div>
-                      
+
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>Updated {formatDate(workspace.updatedAt)}</span>
                         <Button variant="outline" size="sm">

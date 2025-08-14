@@ -1,12 +1,12 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  FolderOpen, 
-  Tags, 
-  Search, 
-  Settings, 
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
+  FileText,
+  FolderOpen,
+  Tags,
+  Search,
+  Settings,
   User,
   Menu,
   X,
@@ -14,42 +14,44 @@ import {
   BarChart3,
   File,
   Users,
-  Sparkles
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
+  Sparkles,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Notes', href: '/notes', icon: FileText },
-  { name: 'Workspaces', href: '/workspaces', icon: FolderOpen },
-  { name: 'Categories', href: '/categories', icon: Tags },
-  { name: 'Search', href: '/search', icon: Search },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Notes", href: "/notes", icon: FileText },
+  { name: "Workspaces", href: "/workspaces", icon: FolderOpen },
+  { name: "Categories", href: "/categories", icon: Tags },
+  { name: "Search", href: "/search", icon: Search },
 ];
 
 const aiFeatures = [
-  { name: 'AI Chat', href: '/chat', icon: Bot, badge: 'AI' },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Templates', href: '/templates', icon: File },
-  { name: 'Collaboration', href: '/collaboration', icon: Users },
+  { name: "AI Chat", href: "/chat", icon: Bot, badge: "AI" },
+  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Templates", href: "/templates", icon: File },
+  { name: "Collaboration", href: "/collaboration", icon: Users },
 ];
 
 const userSection = [
-  { name: 'Profile', href: '/profile', icon: User },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: "Profile", href: "/profile", icon: User },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 function Sidebar({ className }: { className?: string }) {
   const location = useLocation();
 
   return (
-    <div className={cn("flex h-full w-64 flex-col bg-card border-r", className)}>
+    <div
+      className={cn("flex h-full w-64 flex-col bg-card border-r", className)}
+    >
       <div className="p-6">
         <Link to="/dashboard" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
@@ -58,7 +60,7 @@ function Sidebar({ className }: { className?: string }) {
           <h1 className="text-xl font-bold text-gradient">AI Notes</h1>
         </Link>
       </div>
-      
+
       <nav className="flex-1 space-y-1 px-3 pb-4 overflow-y-auto">
         {/* Main Navigation */}
         <div className="space-y-1">
@@ -72,7 +74,7 @@ function Sidebar({ className }: { className?: string }) {
                   "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}
               >
                 <item.icon className="mr-3 h-4 w-4" />
@@ -100,7 +102,7 @@ function Sidebar({ className }: { className?: string }) {
                     "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group",
                     isActive
                       ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
                   <item.icon className="mr-3 h-4 w-4" />
@@ -134,7 +136,7 @@ function Sidebar({ className }: { className?: string }) {
                     "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group",
                     isActive
                       ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
                   <item.icon className="mr-3 h-4 w-4" />
@@ -154,7 +156,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       <Sidebar className="hidden md:flex" />
-      
+
       {/* Mobile Sidebar */}
       <Sheet>
         <div className="flex items-center p-4 md:hidden">
@@ -171,9 +173,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   );

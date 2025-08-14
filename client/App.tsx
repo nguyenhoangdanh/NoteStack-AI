@@ -48,7 +48,7 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/signup" element={<RegisterPage />} />
-        
+
         {/* Main application routes - now public for development */}
         <Route path="/notes" element={<NotesPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -57,7 +57,7 @@ function AppContent() {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/workspaces" element={<WorkspacesPage />} />
         <Route path="/search" element={<SearchPage />} />
-        
+
         {/* AI and Advanced Features */}
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
@@ -73,18 +73,18 @@ function AppContent() {
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
           style: {
-            background: 'var(--background)',
-            color: 'var(--foreground)',
-            border: '1px solid var(--border)',
+            background: "var(--background)",
+            color: "var(--foreground)",
+            border: "1px solid var(--border)",
           },
         }}
       />
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
+      {process.env.NODE_ENV === "development" && <ReactQueryDevtools />}
     </BrowserRouter>
   );
 }

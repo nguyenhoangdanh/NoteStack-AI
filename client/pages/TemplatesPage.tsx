@@ -1,28 +1,40 @@
-import React, { useState } from 'react';
-import { Plus, File, Star, Copy, Edit, Trash2, Search, Filter, Globe, Lock } from 'lucide-react';
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { useState } from "react";
+import {
+  Plus,
+  File,
+  Star,
+  Copy,
+  Edit,
+  Trash2,
+  Search,
+  Filter,
+  Globe,
+  Lock,
+} from "lucide-react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useTemplates, useDeleteTemplate } from '@/hooks/useTemplates';
-import { toast } from 'react-hot-toast';
-import type { Template } from '@/types';
+} from "@/components/ui/select";
+import { useTemplates, useDeleteTemplate } from "@/hooks/useTemplates";
+import { toast } from "react-hot-toast";
+import type { Template } from "@/types";
 
 // Mock templates data
 const mockTemplates: Template[] = [
   {
-    id: '1',
-    name: 'Meeting Notes',
-    description: 'Structured template for meeting notes with agenda, attendees, and action items',
+    id: "1",
+    name: "Meeting Notes",
+    description:
+      "Structured template for meeting notes with agenda, attendees, and action items",
     content: `# Meeting Notes - {{date}}
 
 ## Attendees
@@ -44,19 +56,19 @@ const mockTemplates: Template[] = [
 {{next_steps}}`,
     isPublic: true,
     usageCount: 45,
-    tags: ['meeting', 'work', 'productivity'],
-    createdAt: '2024-01-10T10:30:00Z',
-    updatedAt: '2024-01-15T14:20:00Z',
+    tags: ["meeting", "work", "productivity"],
+    createdAt: "2024-01-10T10:30:00Z",
+    updatedAt: "2024-01-15T14:20:00Z",
     creator: {
-      id: 'user-1',
-      name: 'John Doe',
-      email: 'john@example.com',
+      id: "user-1",
+      name: "John Doe",
+      email: "john@example.com",
     },
   },
   {
-    id: '2',
-    name: 'Project Planning',
-    description: 'Comprehensive template for project planning and tracking',
+    id: "2",
+    name: "Project Planning",
+    description: "Comprehensive template for project planning and tracking",
     content: `# Project: {{project_name}}
 
 ## Overview
@@ -91,19 +103,19 @@ const mockTemplates: Template[] = [
 {{risks}}`,
     isPublic: true,
     usageCount: 32,
-    tags: ['project', 'planning', 'management'],
-    createdAt: '2024-01-08T09:15:00Z',
-    updatedAt: '2024-01-12T16:45:00Z',
+    tags: ["project", "planning", "management"],
+    createdAt: "2024-01-08T09:15:00Z",
+    updatedAt: "2024-01-12T16:45:00Z",
     creator: {
-      id: 'user-1',
-      name: 'John Doe',
-      email: 'john@example.com',
+      id: "user-1",
+      name: "John Doe",
+      email: "john@example.com",
     },
   },
   {
-    id: '3',
-    name: 'Research Notes',
-    description: 'Academic research template with citations and methodology',
+    id: "3",
+    name: "Research Notes",
+    description: "Academic research template with citations and methodology",
     content: `# Research Notes: {{topic}}
 
 ## Research Question
@@ -140,23 +152,26 @@ const mockTemplates: Template[] = [
 {{further_research}}`,
     isPublic: false,
     usageCount: 18,
-    tags: ['research', 'academic', 'citations'],
-    createdAt: '2024-01-05T11:20:00Z',
-    updatedAt: '2024-01-10T15:30:00Z',
+    tags: ["research", "academic", "citations"],
+    createdAt: "2024-01-05T11:20:00Z",
+    updatedAt: "2024-01-10T15:30:00Z",
     creator: {
-      id: 'user-1',
-      name: 'John Doe',
-      email: 'john@example.com',
+      id: "user-1",
+      name: "John Doe",
+      email: "john@example.com",
     },
   },
 ];
 
 export default function TemplatesPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'all' | 'public' | 'private'>('all');
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "public" | "private">("all");
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
+    null,
+  );
 
-  const { data: publicTemplates, isLoading: publicLoading } = useTemplates(true);
+  const { data: publicTemplates, isLoading: publicLoading } =
+    useTemplates(true);
   const { data: allTemplates, isLoading: allLoading } = useTemplates();
   const deleteTemplate = useDeleteTemplate();
 
@@ -164,25 +179,29 @@ export default function TemplatesPage() {
   const templates = allTemplates || mockTemplates;
 
   // Filter templates
-  const filteredTemplates = templates.filter(template => {
-    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesFilter = filter === 'all' || 
-                         (filter === 'public' && template.isPublic) ||
-                         (filter === 'private' && !template.isPublic);
+  const filteredTemplates = templates.filter((template) => {
+    const matchesSearch =
+      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.tags.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "public" && template.isPublic) ||
+      (filter === "private" && !template.isPublic);
 
     return matchesSearch && matchesFilter;
   });
 
   const handleDeleteTemplate = async (templateId: string) => {
-    if (window.confirm('Are you sure you want to delete this template?')) {
+    if (window.confirm("Are you sure you want to delete this template?")) {
       try {
         await deleteTemplate.mutateAsync(templateId);
-        toast.success('Template deleted successfully');
+        toast.success("Template deleted successfully");
       } catch (error) {
-        toast.error('Failed to delete template');
+        toast.error("Failed to delete template");
       }
     }
   };
@@ -261,7 +280,10 @@ export default function TemplatesPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Select value={filter} onValueChange={(value: any) => setFilter(value)}>
+                <Select
+                  value={filter}
+                  onValueChange={(value: any) => setFilter(value)}
+                >
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
@@ -286,7 +308,9 @@ export default function TemplatesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{templates.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Templates</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Templates
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -300,9 +324,11 @@ export default function TemplatesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {templates.filter(t => t.isPublic).length}
+                    {templates.filter((t) => t.isPublic).length}
                   </p>
-                  <p className="text-sm text-muted-foreground">Public Templates</p>
+                  <p className="text-sm text-muted-foreground">
+                    Public Templates
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -332,7 +358,9 @@ export default function TemplatesPage() {
               <File className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No templates found</h3>
               <p className="text-muted-foreground text-center mb-4">
-                {searchQuery ? 'Try adjusting your search criteria' : 'Create your first template to get started'}
+                {searchQuery
+                  ? "Try adjusting your search criteria"
+                  : "Create your first template to get started"}
               </p>
               <Button className="btn-gradient">
                 <Plus className="h-4 w-4 mr-2" />
@@ -343,8 +371,8 @@ export default function TemplatesPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredTemplates.map((template) => (
-              <Card 
-                key={template.id} 
+              <Card
+                key={template.id}
                 className="card-gradient transition-all duration-200 hover:shadow-lg hover:scale-[1.02]"
               >
                 <CardHeader>
@@ -393,30 +421,28 @@ export default function TemplatesPage() {
                       <Star className="h-3 w-3" />
                       <span>{template.usageCount} uses</span>
                     </div>
-                    <span>
-                      by {template.creator.name}
-                    </span>
+                    <span>by {template.creator.name}</span>
                   </div>
 
                   {/* Actions */}
                   <div className="flex gap-2 pt-2">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="flex-1 btn-gradient"
                       onClick={() => handleUseTemplate(template)}
                     >
                       <Copy className="h-3 w-3 mr-1" />
                       Use
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => setSelectedTemplate(template)}
                     >
                       <Edit className="h-3 w-3" />
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => handleDeleteTemplate(template.id)}
                     >
@@ -443,12 +469,12 @@ export default function TemplatesPage() {
                 .sort((a, b) => b.usageCount - a.usageCount)
                 .slice(0, 5)
                 .map((template, index) => (
-                  <div 
+                  <div
                     key={template.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                   >
                     <div className="flex items-center gap-3">
-                      <Badge variant={index === 0 ? 'default' : 'secondary'}>
+                      <Badge variant={index === 0 ? "default" : "secondary"}>
                         #{index + 1}
                       </Badge>
                       <div>
@@ -458,8 +484,8 @@ export default function TemplatesPage() {
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => handleUseTemplate(template)}
                     >
