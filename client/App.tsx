@@ -17,11 +17,15 @@ import Settings from "./pages/Settings";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
-// New page imports
+// New comprehensive page imports
 import NotesPage from "./pages/NotesPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import WorkspacesPage from "./pages/WorkspacesPage";
 import SearchPage from "./pages/SearchPage";
+import ChatPage from "./pages/ChatPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import TemplatesPage from "./pages/TemplatesPage";
+import CollaborationPage from "./pages/CollaborationPage";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -53,6 +57,17 @@ function AppContent() {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/workspaces" element={<WorkspacesPage />} />
         <Route path="/search" element={<SearchPage />} />
+        
+        {/* AI and Advanced Features */}
+        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/templates" element={<TemplatesPage />} />
+        <Route path="/collaboration" element={<CollaborationPage />} />
+
+        {/* Legacy routes for compatibility */}
+        <Route path="/ai-chat" element={<ChatPage />} />
+        <Route path="/insights" element={<AnalyticsPage />} />
+        <Route path="/sharing" element={<CollaborationPage />} />
 
         {/* 404 route */}
         <Route path="/404" element={<NotFound />} />
