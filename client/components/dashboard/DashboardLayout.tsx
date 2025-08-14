@@ -12,7 +12,7 @@ import {
   X,
   Bot,
   BarChart3,
-  FileTemplate,
+  File,
   Users,
   Sparkles
 } from 'lucide-react';
@@ -36,7 +36,7 @@ const navigation = [
 const aiFeatures = [
   { name: 'AI Chat', href: '/chat', icon: Bot, badge: 'AI' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Templates', href: '/templates', icon: FileTemplate },
+  { name: 'Templates', href: '/templates', icon: File },
   { name: 'Collaboration', href: '/collaboration', icon: Users },
 ];
 
