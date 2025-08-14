@@ -19,8 +19,8 @@ import {
   Folder,
 } from "lucide-react";
 import { useUIStore } from "../lib/store";
-import { useNotes, useCreateNote, useDefaultWorkspace } from "../hooks/useApi";
 import { formatDistanceToNow } from "date-fns";
+import { useCreateNote, useDefaultWorkspace, useNotes } from "@/hooks";
 
 export default function CommandPalette() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,7 +36,7 @@ export default function CommandPalette() {
 
   const { data: defaultWorkspace } = useDefaultWorkspace();
   const currentWorkspaceId = selectedWorkspaceId || defaultWorkspace?.id;
-  const { data: notes } = useNotes(currentWorkspaceId);
+  const { data: notes } = useNotes(currentWorkspaceId ? { workspaceId: currentWorkspaceId } : undefined);
   const createNote = useCreateNote();
 
   useEffect(() => {

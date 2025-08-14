@@ -14,11 +14,11 @@ import {
   Settings,
 } from "lucide-react";
 import { useChatStore, useUIStore } from "../lib/store";
-import { useChatStream, useSettings } from "../hooks/useApi";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { cn } from "../lib/utils";
+import { useChatStream, useSettings } from "../hooks";
 
 interface ChatPanelProps {
   className?: string;
@@ -86,7 +86,11 @@ export default function ChatPanel({ className }: ChatPanelProps) {
     try {
       console.log('🚀 Sending chat request:', query);
       
-      const response = await chatStream.mutateAsync(query);
+      const response = await chatStream.mutateAsync({
+        query: query,
+        model: settings?.model,
+        maxTokens: settings?.maxTokens,
+      });
       const { stream, citations } = response;
       
       console.log('📡 Received stream response, citations:', citations.length);

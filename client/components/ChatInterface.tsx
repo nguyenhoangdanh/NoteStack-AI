@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Settings, Message, Citation } from '../types/api.types';
-import { apiClient } from '../lib/api';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Settings, Citation } from '../types';
+import { useChatStream, useSettings } from '../hooks';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -25,6 +25,12 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  citations?: Citation[];
+}
+
 interface ChatInterfaceProps {
   settings: Settings | null;
 }
@@ -38,6 +44,16 @@ interface ChatMessage extends Message {
   loading?: boolean;
   error?: boolean;
 }
+
+// Fix findLastIndex for older TypeScript targets
+const findLastIndex = <T,>(array: T[], predicate: (value: T, index: number, array: T[]) => boolean): number => {
+  for (let i = array.length - 1; i >= 0; i--) {
+    if (predicate(array[i], i, array)) {
+      return i;
+    }
+  }
+  return -1;
+};
 
 export function ChatInterface({ settings }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -57,6 +73,9 @@ export function ChatInterface({ settings }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const { mutateAsync: streamChat } = useChatStream();
+  const { data: settingsData } = useSettings();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -91,7 +110,11 @@ export function ChatInterface({ settings }: ChatInterfaceProps) {
     abortControllerRef.current = new AbortController();
 
     try {
-      const { stream, citations } = await apiClient.chat.stream(message);
+      const { stream, citations } = await streamChat({
+        query: message,
+        model: settingsData?.model,
+        maxTokens: settingsData?.maxTokens,
+      });
       setCurrentCitations(citations);
 
       const reader = stream.getReader();
@@ -186,7 +209,7 @@ export function ChatInterface({ settings }: ChatInterfaceProps) {
     if (lastUserMessage) {
       // Remove the last assistant message if it exists
       setMessages(prev => {
-        const lastAssistantIndex = prev.findLastIndex(m => m.role === 'assistant');
+        const lastAssistantIndex = findLastIndex(prev, m => m.role === 'assistant');
         if (lastAssistantIndex !== -1) {
           return prev.slice(0, lastAssistantIndex);
         }
@@ -230,12 +253,14 @@ export function ChatInterface({ settings }: ChatInterfaceProps) {
         <div className="prose prose-sm max-w-none">
           <ReactMarkdown
             components={{
-              code({ node, inline, className, children, ...props }) {
+              code({ className, children, ...props }: any) {
                 const match = /language-(\w+)/.exec(className || '');
-                return !inline && match ? (
+                const language = match ? match[1] : '';
+                
+                return language ? (
                   <SyntaxHighlighter
-                    style={tomorrow}
-                    language={match[1]}
+                    style={tomorrow as any}
+                    language={language}
                     PreTag="div"
                     {...props}
                   >
@@ -289,7 +314,7 @@ export function ChatInterface({ settings }: ChatInterfaceProps) {
             <div className="flex items-center space-x-2">
               <BrainIcon className="h-5 w-5 text-primary" />
               <span className="font-medium">AI Chat Assistant</span>
-              <Badge variant="outline">{settings?.model || 'Default Model'}</Badge>
+              <Badge variant="outline">{settingsData?.model || 'Default Model'}</Badge>
             </div>
             
             <div className="flex items-center space-x-2">

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Note } from '../types/api.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { SearchIcon, BrainIcon, SparklesIcon, XIcon } from 'lucide-react';
+import { Note } from '@/types';
 
 interface SemanticSearchProps {
     onSearch: (query: string) => void;

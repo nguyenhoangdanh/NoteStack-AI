@@ -62,7 +62,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
-    completeChat,
+    completeChatAsync,
     isCompletingChat,
     completeChatError,
     streamChat,
@@ -91,23 +91,21 @@ export default function ChatPage() {
     setInput("");
 
     try {
-      const response = await completeChat({
+      const response = await completeChatAsync({
         query: input.trim(),
         model: "gpt-4",
         maxTokens: 1000,
       });
 
-      if (response) {
-        const assistantMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          type: "assistant",
-          content: response.response,
-          citations: response.citations,
-          timestamp: new Date(),
-        };
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: "assistant",
+        content: response.response,
+        citations: response.citations,
+        timestamp: new Date(),
+      };
 
-        setMessages((prev) => [...prev, assistantMessage]);
-      }
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       toast.error("Failed to get AI response");
 

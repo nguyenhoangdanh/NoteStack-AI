@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Settings, User } from '../types/api.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -19,6 +18,36 @@ import {
     TrashIcon,
     KeyIcon
 } from 'lucide-react';
+import { Settings, User } from '../types';
+import { 
+    useSettings, 
+    useUpdateSettings, 
+    useUsage,
+    useUserProfile,
+    useUpdateProfile 
+} from '../hooks';
+
+const { data: settings, isLoading: settingsLoading } = useSettings();
+const { data: user } = useUserProfile();
+const { data: usage } = useUsage();
+const { mutateAsync: updateSettings } = useUpdateSettings();
+const { mutateAsync: updateProfile } = useUpdateProfile();
+
+const handleSettingsUpdate = async (newSettings: Partial<Settings>) => {
+    try {
+        await updateSettings(newSettings);
+    } catch (error) {
+        console.error('Error updating settings:', error);
+    }
+};
+
+const handleProfileUpdate = async (profileData: Partial<User>) => {
+    try {
+        await updateProfile(profileData);
+    } catch (error) {
+        console.error('Error updating profile:', error);
+    }
+};
 
 interface SettingsPanelProps {
     settings: Settings | null;
@@ -114,30 +143,16 @@ export function SettingsPanel({ settings, onSettingsUpdate, user }: SettingsPane
                                 <Label>Primary AI Model</Label>
                                 <select
                                     className="w-full p-2 border rounded-md"
-                                    value={localSettings?.model || 'gpt-4'}
+                                    value={localSettings?.model || 'gemini-1.5-flash'}
                                     onChange={(e) => updateSetting('model', e.target.value)}
                                 >
-                                    <option value="gpt-4">GPT-4 (Recommended)</option>
+                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
+                                    <option value="llama3-8b-8192">Llama 3 8B</option>
+                                    <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                                    <option value="gemma-7b-it">Gemma 7B</option>
                                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                                    <option value="claude-3">Claude 3</option>
-                                    <option value="gemini-pro">Gemini Pro</option>
+                                    <option value="gpt-4">GPT-4</option>
                                 </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Temperature</Label>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.1"
-                                    value={localSettings?.temperature || 0.7}
-                                    onChange={(e) => updateSetting('temperature', parseFloat(e.target.value))}
-                                    className="w-full"
-                                />
-                                <p className="text-sm text-muted-foreground">
-                                    Current: {localSettings?.temperature || 0.7} (Higher = more creative)
-                                </p>
                             </div>
 
                             <div className="space-y-2">
@@ -146,6 +161,17 @@ export function SettingsPanel({ settings, onSettingsUpdate, user }: SettingsPane
                                     type="number"
                                     defaultValue={localSettings?.maxTokens || 2048}
                                     onChange={(e) => updateSetting('maxTokens', parseInt(e.target.value))}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Label>Auto Re-embed</Label>
+                                    <p className="text-sm text-muted-foreground">Automatically re-embed notes when content changes</p>
+                                </div>
+                                <Switch
+                                    checked={localSettings?.autoReembed || false}
+                                    onCheckedChange={(checked) => updateSetting('autoReembed', checked)}
                                 />
                             </div>
                         </CardContent>
@@ -188,8 +214,11 @@ export function SettingsPanel({ settings, onSettingsUpdate, user }: SettingsPane
                                     <p className="text-sm text-muted-foreground">Switch between light and dark themes</p>
                                 </div>
                                 <Switch
-                                    checked={localSettings?.darkMode || false}
-                                    onCheckedChange={(checked) => updateSetting('darkMode', checked)}
+                                    checked={false} // Remove reference to non-existent darkMode property
+                                    onCheckedChange={(checked) => {
+                                        // Handle theme change via theme provider instead
+                                        document.documentElement.classList.toggle('dark', checked);
+                                    }}
                                 />
                             </div>
 
@@ -233,8 +262,11 @@ export function SettingsPanel({ settings, onSettingsUpdate, user }: SettingsPane
                                     <p className="text-sm text-muted-foreground">Show AI writing suggestions while editing</p>
                                 </div>
                                 <Switch
-                                    checked={localSettings?.aiSuggestions || true}
-                                    onCheckedChange={(checked) => updateSetting('aiSuggestions', checked)}
+                                    checked={true} // Remove reference to non-existent aiSuggestions property
+                                    onCheckedChange={(checked) => {
+                                        // This could be stored in local storage or a separate preferences system
+                                        console.log('AI Suggestions:', checked);
+                                    }}
                                 />
                             </div>
                         </CardContent>

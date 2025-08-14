@@ -22,7 +22,7 @@ import {
   useDefaultWorkspace,
   useCreateNote,
   useDeleteNote,
-} from "../hooks/useApi";
+} from "../hooks";
 import { useUIStore } from "../lib/store";
 import { formatDistanceToNow } from "date-fns";
 import SearchBar from "./SearchBar";
@@ -48,12 +48,11 @@ export default function Sidebar({ className }: SidebarProps) {
     setSidebarOpen,
   } = useUIStore();
 
+  const { data: notes } = useNotes();
   const { data: workspaces } = useWorkspaces();
   const { data: defaultWorkspace } = useDefaultWorkspace();
-  const currentWorkspaceId = selectedWorkspaceId || defaultWorkspace?.id;
-  const { data: notes } = useNotes(currentWorkspaceId);
-  const createNote = useCreateNote();
-  const deleteNote = useDeleteNote();
+  const { mutateAsync: deleteNote } = useDeleteNote();
+  const { mutateAsync: createNote } = useCreateNote();
 
   const filteredNotes =
     notes?.filter((note) => !filterTag || note.tags.includes(filterTag)) || [];
@@ -63,36 +62,25 @@ export default function Sidebar({ className }: SidebarProps) {
   ).sort();
 
   const handleCreateNote = async () => {
-    if (!currentWorkspaceId || isCreating) return;
-
-    setIsCreating(true);
-    try {
-      const note = await createNote.mutateAsync({
-        title: "Untitled Note",
-        content: "",
-        tags: [],
-        workspaceId: currentWorkspaceId,
-      });
-      setSelectedNoteId(note.id);
-    } catch (error) {
-      console.error("Failed to create note:", error);
-    } finally {
-      setIsCreating(false);
+    if (defaultWorkspace) {
+      try {
+        await createNote({
+          title: "New Note",
+          content: "",
+          tags: [],
+          workspaceId: defaultWorkspace.id,
+        });
+      } catch (error) {
+        console.error("Error creating note:", error);
+      }
     }
   };
 
-  const handleDeleteNote = async (noteId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    if (confirm("Are you sure you want to delete this note?")) {
-      try {
-        await deleteNote.mutateAsync(noteId);
-        if (selectedNoteId === noteId) {
-          setSelectedNoteId(null);
-        }
-      } catch (error) {
-        console.error("Failed to delete note:", error);
-      }
+  const handleDeleteNote = async (id: string) => {
+    try {
+      await deleteNote(id);
+    } catch (error) {
+      console.error("Error deleting note:", error);
     }
   };
 
@@ -206,15 +194,14 @@ export default function Sidebar({ className }: SidebarProps) {
             >
               All
             </Badge>
-            {allTags.slice(0, 10).map((tag) => (
+            {allTags.map((tag) => (
               <Badge
-                key={tag}
-                variant={filterTag === tag ? "default" : "secondary"}
-                className="cursor-pointer text-xs"
-                onClick={() => setFilterTag(tag === filterTag ? "" : tag)}
+                key={tag as string}
+                variant={tag === filterTag ? "default" : "secondary"}
+                className="cursor-pointer transition-colors"
+                onClick={() => setFilterTag(tag === filterTag ? "" : tag as string)}
               >
-                <Tag className="w-3 h-3 mr-1" />
-                {tag}
+                {tag as React.ReactNode}
               </Badge>
             ))}
           </div>
@@ -290,7 +277,10 @@ export default function Sidebar({ className }: SidebarProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => handleDeleteNote(note.id, e)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteNote(note.id);
+                      }}
                       className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 ml-2"
                     >
                       <Trash2 className="w-3 h-3" />

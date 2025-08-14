@@ -13,8 +13,8 @@ import {
   Loader2,
   X,
 } from "lucide-react";
-import { useGenerateSuggestion, useApplySuggestion } from "../hooks/useApi";
 import ReactMarkdown from "react-markdown";
+import { useApplySuggestion, useGenerateSuggestion } from "@/hooks";
 
 interface AISuggestionPanelProps {
   noteId: string;
@@ -33,6 +33,7 @@ export default function AISuggestionPanel({
 }: AISuggestionPanelProps) {
   const [activeSuggestion, setActiveSuggestion] = useState<any>(null);
   const [selectedType, setSelectedType] = useState<string>('improve');
+  const [isLoading, setIsLoading] = useState(false);
 
   const generateSuggestion = useGenerateSuggestion();
   const applySuggestion = useApplySuggestion();
@@ -46,18 +47,25 @@ export default function AISuggestionPanel({
     { id: 'translate', label: '🌐 Dịch sang EN', icon: Lightbulb },
   ];
 
-  const handleGenerateSuggestion = async (type: string) => {
+  const handleSuggestion = async (type: string) => {
+    if (!selectedText && !content) return;
+
+    setIsLoading(true);
     setSelectedType(type);
     try {
-      const result = await generateSuggestion.mutateAsync({
+      const response = await generateSuggestion.mutateAsync({
         content,
         selectedText,
-        suggestionType: type,
-        targetLanguage: type === 'translate' ? 'English' : undefined,
+        suggestionType: type as 'improve' | 'expand' | 'summarize' | 'restructure' | 'examples' | 'grammar' | 'translate',
       });
-      setActiveSuggestion(result);
+      
+      // Set the active suggestion with the response
+      setActiveSuggestion(response);
     } catch (error) {
-      console.error('Failed to generate suggestion:', error);
+      console.error('Error generating suggestion:', error);
+      setActiveSuggestion(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,8 +115,8 @@ export default function AISuggestionPanel({
                 key={type.id}
                 variant={selectedType === type.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => handleGenerateSuggestion(type.id)}
-                disabled={generateSuggestion.isPending}
+                onClick={() => handleSuggestion(type.id)}
+                disabled={isLoading}
                 className="flex items-center gap-2 h-auto p-3"
               >
                 <Icon className="w-4 h-4" />
@@ -119,7 +127,7 @@ export default function AISuggestionPanel({
         </div>
 
         {/* Loading State */}
-        {generateSuggestion.isPending && (
+        {isLoading && (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin mr-2" />
             <span>Đang tạo gợi ý AI...</span>
@@ -127,7 +135,7 @@ export default function AISuggestionPanel({
         )}
 
         {/* Suggestion Result */}
-        {activeSuggestion && !generateSuggestion.isPending && (
+        {activeSuggestion && !isLoading && (
           <div className="space-y-4">
             {/* Show warning if AI didn't understand */}
             {activeSuggestion.suggestion.includes('Tôi không tìm thấy thông tin') && (
@@ -139,7 +147,7 @@ export default function AISuggestionPanel({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleGenerateSuggestion(selectedType)}
+                  onClick={() => handleSuggestion(selectedType)}
                   className="mt-2"
                 >
                   Thử lại

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Message, Citation } from "../types/api.types";
+import { Citation } from "../types";
 
 interface UIState {
   // Sidebar state
@@ -117,6 +117,15 @@ export const useUIStore = create<UIState>()(
   ),
 );
 
+// Define Message interface locally for the chat store
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  citations?: Citation[];
+  timestamp: number;
+}
+
 // Chat state (separate store for better performance)
 interface ChatState {
   messages: Message[];
@@ -126,7 +135,7 @@ interface ChatState {
   // Actions
   setInput: (input: string) => void;
   addMessage: (message: Omit<Message, "id" | "timestamp">) => void;
-  updateLastMessage: (content: string) => void; // Add this method
+  updateLastMessage: (content: string) => void;
   setLoading: (loading: boolean) => void;
   clearMessages: () => void;
 }

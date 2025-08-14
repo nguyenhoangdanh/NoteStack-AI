@@ -28,7 +28,7 @@ import { useTemplates, useDeleteTemplate } from "@/hooks/useTemplates";
 import { toast } from "react-hot-toast";
 import type { Template } from "@/types";
 
-// Mock templates data
+// Mock templates data - update to match actual Template interface
 const mockTemplates: Template[] = [
   {
     id: "1",
@@ -55,14 +55,12 @@ const mockTemplates: Template[] = [
 ## Next Steps
 {{next_steps}}`,
     isPublic: true,
-    usageCount: 45,
     tags: ["meeting", "work", "productivity"],
+    ownerId: "user-1",
     createdAt: "2024-01-10T10:30:00Z",
     updatedAt: "2024-01-15T14:20:00Z",
-    creator: {
-      id: "user-1",
-      name: "John Doe",
-      email: "john@example.com",
+    usage: {
+      totalUses: 45,
     },
   },
   {
@@ -102,14 +100,12 @@ const mockTemplates: Template[] = [
 ## Risks & Mitigation
 {{risks}}`,
     isPublic: true,
-    usageCount: 32,
     tags: ["project", "planning", "management"],
+    ownerId: "user-1",
     createdAt: "2024-01-08T09:15:00Z",
     updatedAt: "2024-01-12T16:45:00Z",
-    creator: {
-      id: "user-1",
-      name: "John Doe",
-      email: "john@example.com",
+    usage: {
+      totalUses: 32,
     },
   },
   {
@@ -151,14 +147,12 @@ const mockTemplates: Template[] = [
 ## Further Research
 {{further_research}}`,
     isPublic: false,
-    usageCount: 18,
     tags: ["research", "academic", "citations"],
+    ownerId: "user-1",
     createdAt: "2024-01-05T11:20:00Z",
     updatedAt: "2024-01-10T15:30:00Z",
-    creator: {
-      id: "user-1",
-      name: "John Doe",
-      email: "john@example.com",
+    usage: {
+      totalUses: 18,
     },
   },
 ];
@@ -342,7 +336,7 @@ export default function TemplatesPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {templates.reduce((sum, t) => sum + t.usageCount, 0)}
+                    {templates.reduce((sum, t) => sum + (t.usage?.totalUses || 0), 0)}
                   </p>
                   <p className="text-sm text-muted-foreground">Total Uses</p>
                 </div>
@@ -419,9 +413,9 @@ export default function TemplatesPage() {
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Star className="h-3 w-3" />
-                      <span>{template.usageCount} uses</span>
+                      <span>{template.usage?.totalUses || 0} uses</span>
                     </div>
-                    <span>by {template.creator.name}</span>
+                    <span>Created {new Date(template.createdAt).toLocaleDateString()}</span>
                   </div>
 
                   {/* Actions */}
@@ -466,7 +460,7 @@ export default function TemplatesPage() {
           <CardContent>
             <div className="space-y-3">
               {templates
-                .sort((a, b) => b.usageCount - a.usageCount)
+                .sort((a, b) => (b.usage?.totalUses || 0) - (a.usage?.totalUses || 0))
                 .slice(0, 5)
                 .map((template, index) => (
                   <div
@@ -480,7 +474,7 @@ export default function TemplatesPage() {
                       <div>
                         <p className="font-medium text-sm">{template.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {template.usageCount} uses
+                          {template.usage?.totalUses || 0} uses
                         </p>
                       </div>
                     </div>

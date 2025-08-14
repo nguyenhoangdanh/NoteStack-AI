@@ -1,5 +1,4 @@
 import React from 'react';
-import { Note } from '../types/api.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
@@ -11,6 +10,7 @@ import {
     BrainIcon,
     TargetIcon
 } from 'lucide-react';
+import { Note } from '@/types';
 
 interface InsightsWidgetProps {
     notes: Note[];
@@ -31,7 +31,7 @@ export function InsightsWidget({ notes }: InsightsWidgetProps) {
     }, {} as Record<string, number>);
 
     const topTags = Object.entries(tagFrequency)
-        .sort(([, a], [, b]) => b - a)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
         .slice(0, 5);
 
     // Calculate recent activity (last 7 days)
@@ -131,7 +131,7 @@ export function InsightsWidget({ notes }: InsightsWidgetProps) {
                                 <div key={tag} className="flex items-center justify-between">
                                     <span className="text-sm truncate">{tag}</span>
                                     <Badge variant="outline" className="text-xs">
-                                        {count}
+                                        {count as React.ReactNode}
                                     </Badge>
                                 </div>
                             ))}

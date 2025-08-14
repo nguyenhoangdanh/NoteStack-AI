@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Note } from '../types/api.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -18,6 +17,7 @@ import {
   MoreHorizontalIcon,
   SparklesIcon
 } from 'lucide-react';
+import { Note } from '@/types';
 
 interface TagsManagerProps {
   notes: Note[];

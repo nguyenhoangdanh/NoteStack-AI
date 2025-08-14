@@ -127,11 +127,7 @@ const mockShareStats = {
   totalShares: 12,
   activeCollaborations: 8,
   totalViews: 234,
-  popularNotes: [
-    { noteId: "note-1", title: "React Guidelines", views: 89 },
-    { noteId: "note-2", title: "Project Architecture", views: 67 },
-    { noteId: "note-3", title: "AI Integration", views: 45 },
-  ],
+  popularNotes: [],
 };
 
 export default function CollaborationPage() {
@@ -149,7 +145,30 @@ export default function CollaborationPage() {
 
   // Use actual data if available, otherwise fallback to mock data
   const finalCollaborations = collaborations || mockCollaborations;
-  const finalShareStats = shareStats || mockShareStats;
+
+  // Process share stats data with proper type checking
+  const processedShareStats = React.useMemo(() => {
+    if (!shareStats || typeof shareStats !== "object") {
+      return mockShareStats;
+    }
+
+    // Type guard to check if shareStats has expected properties
+    const stats = shareStats as any;
+    if (stats.stats && typeof stats.stats === "object") {
+      // Extract from nested stats object
+      return {
+        totalShares: stats.stats.totalShares || 0,
+        activeCollaborations: stats.stats.activeShares || 0,
+        totalViews: stats.stats.totalViews || 0,
+        popularNotes: [], // UserStatsResponse doesn't include popularNotes
+      };
+    }
+
+    return mockShareStats;
+  }, [shareStats]);
+
+  // Use processed data with proper fallbacks
+  const finalShareStats = processedShareStats;
 
   // Filter collaborations
   const filteredCollaborations = finalCollaborations.filter((collab) => {
@@ -517,34 +536,41 @@ export default function CollaborationPage() {
         <Card className="card-gradient">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
+              <Eye className="h-5 w-5" />
               Most Viewed Shared Notes
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {finalShareStats.popularNotes?.map((note, index) => (
-                <div
-                  key={note.noteId}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <Badge variant={index === 0 ? "default" : "secondary"}>
-                      #{index + 1}
-                    </Badge>
-                    <div>
-                      <p className="font-medium text-sm">{note.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {note.views} views
-                      </p>
+              {finalShareStats.popularNotes && finalShareStats.popularNotes.length > 0 ? (
+                finalShareStats.popularNotes.map((note, index) => (
+                  <div
+                    key={note.noteId}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Badge variant={index === 0 ? "default" : "secondary"}>
+                        #{index + 1}
+                      </Badge>
+                      <div>
+                        <p className="font-medium text-sm">{note.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {note.views} views
+                        </p>
+                      </div>
                     </div>
+                    <Button size="sm" variant="outline">
+                      <Eye className="h-3 w-3 mr-1" />
+                      View
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-3 w-3 mr-1" />
-                    View
-                  </Button>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Eye className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">No popular notes data available</p>
                 </div>
-              )) || []}
+              )}
             </div>
           </CardContent>
         </Card>

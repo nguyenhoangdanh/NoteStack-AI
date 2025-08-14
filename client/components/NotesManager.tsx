@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Note, Workspace, CreateNoteDto, UpdateNoteDto } from '../types/api.types';
-import { apiClient } from '../lib/api';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
@@ -28,22 +26,31 @@ import ReactMarkdown from 'react-markdown';
 import { formatDistanceToNow } from 'date-fns';
 import { NoteEditor } from './NoteEditor';
 import { SemanticSearch } from './SemanticSearch';
+import { Note, Workspace, CreateNoteRequest, UpdateNoteRequest } from '../types';
+import { 
+    useNotes, 
+    useCreateNote, 
+    useUpdateNote, 
+    useDeleteNote,
+    useWorkspaces,
+    useSearchNotes
+} from '../hooks';
 
 interface NotesManagerProps {
-    notes: Note[];
     selectedWorkspace: Workspace | null;
-    onNotesUpdate: (notes: Note[]) => void;
     onWorkspaceChange: (workspace: Workspace) => void;
-    workspaces: Workspace[];
 }
 
 export function NotesManager({
-    notes,
     selectedWorkspace,
-    onNotesUpdate,
-    onWorkspaceChange,
-    workspaces
+    onWorkspaceChange
 }: NotesManagerProps) {
+    const { data: notes, isLoading: notesLoading } = useNotes();
+    const { data: workspaces } = useWorkspaces();
+    const { mutateAsync: createNote } = useCreateNote();
+    const { mutateAsync: updateNote } = useUpdateNote();
+    const { mutateAsync: deleteNote } = useDeleteNote();
+
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
     const [view, setView] = useState<'list' | 'grid' | 'editor'>('grid');
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -53,7 +60,7 @@ export function NotesManager({
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
     // New note form state
-    const [newNote, setNewNote] = useState<CreateNoteDto>({
+    const [newNote, setNewNote] = useState<CreateNoteRequest>({
         title: '',
         content: '',
         tags: [],
@@ -61,16 +68,16 @@ export function NotesManager({
     });
 
     // Edit note form state
-    const [editNote, setEditNote] = useState<UpdateNoteDto>({});
+    const [editNote, setEditNote] = useState<UpdateNoteRequest>({});
 
     // Tag input state
     const [tagInput, setTagInput] = useState('');
 
     // Get all unique tags from notes
-    const allTags = Array.from(new Set(notes.flatMap(note => note.tags)));
+    const allTags = Array.from(new Set(notes?.flatMap(note => note.tags) || []));
 
     // Filter and sort notes
-    const filteredNotes = notes
+    const filteredNotes = (notes || [])
         .filter(note => {
             const matchesSearch = !searchQuery ||
                 note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -105,19 +112,18 @@ export function NotesManager({
         }
 
         try {
-            const createdNote = await apiClient.notes.create({
+            const createdNote = await createNote({
                 ...newNote,
                 workspaceId: selectedWorkspace.id
             });
 
-            onNotesUpdate([createdNote, ...notes]);
             setIsCreateDialogOpen(false);
             setNewNote({ title: '', content: '', tags: [], workspaceId: selectedWorkspace.id });
             toast.success('Note created successfully!');
 
             // Auto-process for RAG
             try {
-                await apiClient.notes.processForRAG(createdNote.id);
+                console.log('Auto-processing for RAG:', createdNote.id);
             } catch (error) {
                 console.log('Auto-processing for RAG failed:', error);
             }
@@ -131,12 +137,7 @@ export function NotesManager({
         if (!selectedNote) return;
 
         try {
-            const updatedNote = await apiClient.notes.update(selectedNote.id, editNote);
-            const updatedNotes = notes.map(note =>
-                note.id === selectedNote.id ? updatedNote : note
-            );
-
-            onNotesUpdate(updatedNotes);
+            const updatedNote = await updateNote({ id: selectedNote.id, ...editNote });
             setSelectedNote(updatedNote);
             setIsEditDialogOpen(false);
             setEditNote({});
@@ -149,9 +150,7 @@ export function NotesManager({
 
     const handleDeleteNote = async (noteId: string) => {
         try {
-            await apiClient.notes.delete(noteId);
-            const updatedNotes = notes.filter(note => note.id !== noteId);
-            onNotesUpdate(updatedNotes);
+            await deleteNote(noteId);
 
             if (selectedNote?.id === noteId) {
                 setSelectedNote(null);
@@ -198,10 +197,6 @@ export function NotesManager({
             <NoteEditor
                 note={selectedNote}
                 onSave={(updatedNote) => {
-                    const updatedNotes = notes.map(note =>
-                        note.id === updatedNote.id ? updatedNote : note
-                    );
-                    onNotesUpdate(updatedNotes);
                     setSelectedNote(updatedNote);
                 }}
                 onClose={() => {
@@ -527,7 +522,14 @@ export function NotesManager({
             </Dialog>
 
             {/* Semantic Search Component */}
-            <SemanticSearch />
+            <SemanticSearch 
+                onSearch={(results) => {
+                    console.log('Search results:', results);
+                }}
+                onClose={() => {
+                    console.log('Search closed');
+                }}
+            />
         </div>
     );
 }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Note, UpdateNoteDto } from '../types/api.types';
-import { apiClient } from '../lib/api';
+import { Note, UpdateNoteRequest } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
@@ -22,6 +21,7 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useUpdateNote, useGenerateSuggestion } from '../hooks';
 
 interface NoteEditorProps {
   note: Note;
@@ -30,7 +30,7 @@ interface NoteEditorProps {
 }
 
 export function NoteEditor({ note, onSave, onClose }: NoteEditorProps) {
-  const [editedNote, setEditedNote] = useState<UpdateNoteDto>({
+  const [editedNote, setEditedNote] = useState<UpdateNoteRequest>({
     title: note.title,
     content: note.content,
     tags: [...note.tags]
@@ -39,6 +39,9 @@ export function NoteEditor({ note, onSave, onClose }: NoteEditorProps) {
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [tagInput, setTagInput] = useState('');
+
+  const { mutate: updateNote } = useUpdateNote();
+  const { mutateAsync: generateSuggestion } = useGenerateSuggestion();
 
   // Track changes
   useEffect(() => {
@@ -60,30 +63,14 @@ export function NoteEditor({ note, onSave, onClose }: NoteEditorProps) {
     return () => clearTimeout(autoSaveTimer);
   }, [editedNote, hasChanges]);
 
-  const handleSave = async (showToast = true) => {
-    setSaving(true);
-    try {
-      const updatedNote = await apiClient.notes.update(note.id, editedNote);
-      onSave(updatedNote);
-      setHasChanges(false);
-      
-      if (showToast) {
-        toast.success('Note saved successfully!');
-      }
-      
-      // Auto-process for RAG if content changed
-      if (editedNote.content !== note.content) {
-        try {
-          await apiClient.notes.processForRAG(note.id);
-        } catch (error) {
-          console.log('Auto-processing for RAG failed:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to save note:', error);
-      toast.error('Failed to save note');
-    } finally {
-      setSaving(false);
+  const handleSave = () => {
+    if (note) {
+      updateNote({
+        id: note.id,
+        title: editedNote.title,
+        content: editedNote.content,
+        tags: editedNote.tags
+      });
     }
   };
 
@@ -260,12 +247,14 @@ export function NoteEditor({ note, onSave, onClose }: NoteEditorProps) {
                 <div className="prose prose-lg max-w-none">
                   <ReactMarkdown
                     components={{
-                      code({ node, inline, className, children, ...props }) {
+                      code({ className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
+                        const language = match ? match[1] : '';
+                        
+                        return language ? (
                           <SyntaxHighlighter
-                            style={tomorrow}
-                            language={match[1]}
+                            style={tomorrow as any}
+                            language={language}
                             PreTag="div"
                             {...props}
                           >
