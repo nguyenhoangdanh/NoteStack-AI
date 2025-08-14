@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { apiClient, ApiError } from "../lib/api";
-import { User, RegisterDto, LoginDto } from "../types/api.types";
+import { authService } from "@/services";
+import { ApiClientError } from "@/lib/apiClient";
+import type { User, RegisterRequest, LoginRequest } from "@/types";
 
 interface AuthState {
   user: User | null;
@@ -11,7 +12,7 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterDto) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   googleLogin: () => void;
   clearError: () => void;
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Check authentication status on app load
   const checkAuth = async () => {
-    const token = localStorage.getItem('auth_token');
+    const token = authService.getToken();
     
     if (!token) {
       setLoading(false);
@@ -64,20 +65,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     try {
-      const response = await apiClient.auth.verify();
+      const response = await authService.verify();
       if (response.valid) {
         setUser(response.user);
       } else {
-        localStorage.removeItem('auth_token');
+        authService.removeToken();
         setUser(null);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      localStorage.removeItem('auth_token');
+      authService.removeToken();
       setUser(null);
       
       // Don't show error for expired tokens
-      if (error instanceof ApiError && error.status === 401) {
+      if (error instanceof ApiClientError && error.isUnauthorized()) {
         // Token expired, silently log out
       } else {
         setError('Authentication check failed');
@@ -93,11 +94,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
 
     try {
-      const response = await apiClient.auth.login({ email, password });
-      localStorage.setItem('auth_token', response.access_token);
-      setUser(response.user as User);
+      const response = await authService.login({ email, password });
+      setUser(response.user);
     } catch (error) {
-      const message = error instanceof ApiError 
+      const message = error instanceof ApiClientError 
         ? (Array.isArray(error.message) ? error.message.join(', ') : error.message)
         : 'Login failed';
       setError(message);
@@ -108,16 +108,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   // Register function
-  const register = async (data: RegisterDto) => {
+  const register = async (data: RegisterRequest) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await apiClient.auth.register(data);
-      localStorage.setItem('auth_token', response.access_token);
-      setUser(response.user as User);
+      const response = await authService.register(data);
+      setUser(response.user);
     } catch (error) {
-      const message = error instanceof ApiError 
+      const message = error instanceof ApiClientError 
         ? (Array.isArray(error.message) ? error.message.join(', ') : error.message)
         : 'Registration failed';
       setError(message);
@@ -130,12 +129,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Google OAuth login
   const googleLogin = () => {
     setError(null);
-    apiClient.auth.googleAuth();
+    window.location.href = authService.getGoogleAuthUrl();
   };
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem('auth_token');
+    authService.logout();
     setUser(null);
     setError(null);
   };
@@ -160,7 +159,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (token) {
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
-        localStorage.setItem('auth_token', token);
+        authService.setToken(token);
         checkAuth();
       } else if (error) {
         // Clean up URL

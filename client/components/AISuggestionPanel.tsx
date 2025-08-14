@@ -133,7 +133,7 @@ export default function AISuggestionPanel({
             {activeSuggestion.suggestion.includes('Tôi không tìm thấy thông tin') && (
               <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>⚠️ AI Hiểu Nhầm:</strong> AI đang xử lý như câu hỏi chat thay vì yêu cầu chỉnh sửa. 
+                  <strong>⚠️ AI Hiểu Nhầm:</strong> AI đang xử lý như câu hỏi chat thay vì yêu cầu chỉnh sửa.
                   Hãy thử lại hoặc chọn loại gợi ý khác.
                 </p>
                 <Button
@@ -180,10 +180,10 @@ export default function AISuggestionPanel({
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {/* Character count comparison */}
                 <div className="mt-2 text-xs text-muted-foreground">
-                  Gốc: {activeSuggestion.originalText.length} ký tự → 
+                  Gốc: {activeSuggestion.originalText.length} ký tự →
                   Mới: {activeSuggestion.suggestion.length} ký tự
                   {activeSuggestion.suggestion.length > activeSuggestion.originalText.length && (
                     <span className="text-green-600"> (+{activeSuggestion.suggestion.length - activeSuggestion.originalText.length})</span>

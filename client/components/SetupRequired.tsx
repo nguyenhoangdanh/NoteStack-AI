@@ -14,7 +14,7 @@ export default function SetupRequired() {
   const [copied, setCopied] = React.useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-  const isConfigured = apiUrl && !apiUrl.includes('localhost') && !apiUrl.includes('3001');
+  const isConfigured = apiUrl && !apiUrl.includes('localhost') && !apiUrl.includes('8080');
 
   const handleCopyCommand = (command: string) => {
     navigator.clipboard.writeText(command);
@@ -144,7 +144,7 @@ export default function SetupRequired() {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  The backend will start on port 3001. Refresh this page after starting.
+                  The backend will start on port 8080. Refresh this page after starting.
                 </p>
               </div>
             </div>

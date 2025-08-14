@@ -8,7 +8,7 @@ The AI chat system provides conversational access to your notes using advanced R
 
 ### Features
 - ✅ Real-time streaming chat responses
-- ✅ RAG-powered answers from your notes
+- ✅ RAG-powered answers from your notes  
 - ✅ Multiple AI provider support (OpenAI, Google Gemini, Groq)
 - ✅ Automatic context building and citation tracking
 - ✅ Content suggestions and improvements
@@ -36,159 +36,34 @@ Content-Type: application/json
 ```
 
 **Validation Rules:**
-- `query`: Required string, user's question
-- `model`: Optional string, AI model to use
-- `maxTokens`: Optional number, maximum response length
+- `query`: Required string, non-empty (validated by interface, explicit validation in controller)
+- `model`: Optional string (interface definition, not used in current implementation)
+- `maxTokens`: Optional number (interface definition, not used in current implementation)
 
-**Available Models:**
-- `gemini-1.5-flash` (Free, Google AI) - **Default**
-- `llama3-8b-8192` (Free, Groq)  
-- `gpt-3.5-turbo` (Paid, OpenAI)
-- `gpt-4` (Paid, OpenAI)
+**Response Headers:**
+```
+Content-Type: text/plain; charset=utf-8
+Cache-Control: no-cache
+Connection: keep-alive
+Access-Control-Expose-Headers: X-Citations
+X-Citations: [{"title":"Note Title","heading":"Section"}]
+```
 
-**Response:**
-- **Content-Type:** `text/plain; charset=utf-8`
-- **Headers:** `X-Citations: [{"title":"Note Title","heading":"Section"}]`
-- **Body:** Streaming text response
+**Response Body:**
+Streaming text response, sent chunk by chunk for real-time display.
 
-**Frontend Integration:**
-```typescript
-// services/chatService.ts
-export async function streamChatResponse(query: string) {
-  const token = localStorage.getItem('auth_token');
-  
-  const response = await fetch('/api/chat/stream', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ query })
-  });
-
-  if (!response.ok) {
-    throw new Error('Chat request failed');
-  }
-
-  // Extract citations from headers
-  const citations = JSON.parse(response.headers.get('X-Citations') || '[]');
-  
-  return { stream: response.body, citations };
+**Error Responses:**
+```json
+// 400 - Validation Error
+{
+  "message": "Query is required and must be a non-empty string",
+  "statusCode": 400
 }
 
-// React streaming chat component
-export function StreamingChat() {
-  const [messages, setMessages] = useState([]);
-  const [currentQuery, setCurrentQuery] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [currentResponse, setCurrentResponse] = useState('');
-
-  const sendMessage = async (query: string) => {
-    if (!query.trim() || isStreaming) return;
-
-    // Add user message
-    const userMessage = { role: 'user', content: query, timestamp: Date.now() };
-    setMessages(prev => [...prev, userMessage]);
-    
-    setCurrentQuery(query);
-    setIsStreaming(true);
-    setCurrentResponse('');
-
-    try {
-      const { stream, citations } = await streamChatResponse(query);
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
-
-      let fullResponse = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        fullResponse += chunk;
-        setCurrentResponse(fullResponse);
-      }
-
-      // Add AI response to messages
-      const aiMessage = {
-        role: 'assistant',
-        content: fullResponse,
-        citations,
-        timestamp: Date.now()
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-      setCurrentResponse('');
-      
-    } catch (error) {
-      const errorMessage = {
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
-        error: true,
-        timestamp: Date.now()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsStreaming(false);
-      setCurrentQuery('');
-    }
-  };
-
-  return (
-    <div className="streaming-chat">
-      <div className="messages-container">
-        {messages.map((message, index) => (
-          <ChatMessage key={index} message={message} />
-        ))}
-        
-        {isStreaming && (
-          <div className="streaming-response">
-            <div className="message-header">AI Assistant</div>
-            <div className="message-content">
-              {currentResponse}
-              <span className="cursor">|</span>
-            </div>
-          </div>
-        )}
-      </div>
-      
-      <ChatInput 
-        onSendMessage={sendMessage}
-        disabled={isStreaming}
-        placeholder="Ask about your notes..."
-      />
-    </div>
-  );
-}
-
-function ChatMessage({ message }) {
-  return (
-    <div className={`chat-message ${message.role}`}>
-      <div className="message-header">
-        {message.role === 'user' ? 'You' : 'AI Assistant'}
-        <span className="timestamp">
-          {new Date(message.timestamp).toLocaleTimeString()}
-        </span>
-      </div>
-      
-      <div className="message-content">
-        <ReactMarkdown>{message.content}</ReactMarkdown>
-        
-        {message.citations && message.citations.length > 0 && (
-          <div className="citations">
-            <h4>Sources:</h4>
-            {message.citations.map((citation, i) => (
-              <div key={i} className="citation">
-                📝 {citation.title}
-                {citation.heading && ` > ${citation.heading}`}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+// 500 - Processing Error  
+{
+  "error": "Internal server error",
+  "message": "Failed to process chat request"
 }
 ```
 
@@ -216,7 +91,7 @@ Content-Type: application/json
 **Success Response (200):**
 ```json
 {
-  "response": "Based on your notes, machine learning is a field of artificial intelligence that focuses on algorithms that can learn from data. Your notes cover several key concepts:\n\n## Supervised Learning\nYou've documented various supervised learning algorithms including linear regression, decision trees, and neural networks...",
+  "response": "Based on your notes, machine learning is a field of artificial intelligence that focuses on algorithms that can learn from data...",
   "citations": [
     {
       "title": "ML Fundamentals",
@@ -230,85 +105,11 @@ Content-Type: application/json
 }
 ```
 
-**Frontend Integration:**
-```typescript
-// services/chatService.ts
-export async function getCompleteResponse(query: string) {
-  const token = localStorage.getItem('auth_token');
-  
-  const response = await fetch('/api/chat/complete', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ query })
-  });
-
-  if (!response.ok) {
-    throw new Error('Chat request failed');
-  }
-
-  return response.json();
-}
-
-// React component for complete responses
-export function SimpleChat() {
-  const [query, setQuery] = useState('');
-  const [response, setResponse] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-
-    setLoading(true);
-    try {
-      const result = await getCompleteResponse(query.trim());
-      setResponse(result);
-    } catch (error) {
-      toast.error('Failed to get AI response: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="simple-chat">
-      <form onSubmit={handleSubmit} className="chat-form">
-        <textarea
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask a question about your notes..."
-          rows={3}
-          disabled={loading}
-        />
-        <button type="submit" disabled={loading || !query.trim()}>
-          {loading ? 'Thinking...' : 'Ask AI'}
-        </button>
-      </form>
-
-      {response && (
-        <div className="chat-response">
-          <div className="response-content">
-            <ReactMarkdown>{response.response}</ReactMarkdown>
-          </div>
-          
-          {response.citations && response.citations.length > 0 && (
-            <div className="response-citations">
-              <h4>Referenced from your notes:</h4>
-              {response.citations.map((citation, i) => (
-                <div key={i} className="citation-item">
-                  • {citation.title}
-                  {citation.heading && ` → ${citation.heading}`}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+**Error Response (500):**
+```json
+{
+  "message": "Failed to process chat request",
+  "statusCode": 500
 }
 ```
 
@@ -328,20 +129,26 @@ Content-Type: application/json
 ```json
 {
   "content": "Your note content here...",
-  "selectedText": "specific text to improve", 
-  "suggestionType": "improve",
+  "selectedText": "specific text to improve",
+  "suggestionType": "improve", 
   "targetLanguage": "English"
 }
 ```
 
 **Suggestion Types:**
 - `improve` - Enhance writing style and clarity
-- `expand` - Add more detail and examples  
+- `expand` - Add more detail and examples
 - `summarize` - Create concise summary
 - `restructure` - Reorganize for better flow
-- `examples` - Add practical examples
+- `examples` - Add practical examples  
 - `grammar` - Fix grammar and spelling
 - `translate` - Translate to target language
+
+**Validation Rules:**
+- `content`: Required string - full note content
+- `selectedText`: Optional string - specific text to process
+- `suggestionType`: Required enum - type of suggestion to generate
+- `targetLanguage`: Optional string - for translation suggestions
 
 **Success Response (200):**
 ```json
@@ -353,135 +160,11 @@ Content-Type: application/json
 }
 ```
 
-**Frontend Integration:**
-```typescript
-// services/chatService.ts
-export async function generateSuggestion(
-  content: string,
-  selectedText?: string, 
-  suggestionType: string = 'improve',
-  targetLanguage?: string
-) {
-  const token = localStorage.getItem('auth_token');
-  
-  const response = await fetch('/api/chat/suggest', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      content,
-      selectedText,
-      suggestionType,
-      targetLanguage
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to generate suggestion');
-  }
-
-  return response.json();
-}
-
-// React AI suggestions widget
-export function AISuggestionsWidget({ noteContent, selectedText, onApplySuggestion }) {
-  const [suggestionType, setSuggestionType] = useState('improve');
-  const [suggestion, setSuggestion] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const suggestionTypes = [
-    { value: 'improve', label: '✨ Improve', desc: 'Enhance clarity and style' },
-    { value: 'expand', label: '📝 Expand', desc: 'Add more details' },
-    { value: 'summarize', label: '📋 Summarize', desc: 'Create summary' },
-    { value: 'restructure', label: '🔄 Restructure', desc: 'Reorganize content' },
-    { value: 'examples', label: '💡 Examples', desc: 'Add examples' },
-    { value: 'grammar', label: '✏️ Grammar', desc: 'Fix grammar & spelling' },
-    { value: 'translate', label: '🌐 Translate', desc: 'Translate text' }
-  ];
-
-  const handleGenerateSuggestion = async () => {
-    setLoading(true);
-    try {
-      const result = await generateSuggestion(
-        noteContent,
-        selectedText, 
-        suggestionType
-      );
-      setSuggestion(result);
-    } catch (error) {
-      toast.error('Failed to generate suggestion: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApplySuggestion = () => {
-    if (suggestion) {
-      onApplySuggestion(suggestion);
-      setSuggestion(null);
-    }
-  };
-
-  return (
-    <div className="ai-suggestions-widget">
-      <div className="suggestion-controls">
-        <div className="suggestion-types">
-          {suggestionTypes.map(type => (
-            <button
-              key={type.value}
-              className={suggestionType === type.value ? 'active' : ''}
-              onClick={() => setSuggestionType(type.value)}
-              title={type.desc}
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-        
-        <button 
-          onClick={handleGenerateSuggestion}
-          disabled={loading}
-          className="generate-btn"
-        >
-          {loading ? 'Generating...' : 'Generate Suggestion'}
-        </button>
-      </div>
-
-      {suggestion && (
-        <div className="suggestion-result">
-          <div className="suggestion-header">
-            <h4>AI Suggestion ({suggestion.type})</h4>
-            {suggestion.hasSelection && (
-              <span className="selection-badge">Selected text</span>
-            )}
-          </div>
-          
-          <div className="suggestion-content">
-            <div className="original-text">
-              <label>Original:</label>
-              <div className="text-preview">{suggestion.originalText}</div>
-            </div>
-            
-            <div className="suggested-text">
-              <label>Suggestion:</label>
-              <div className="text-preview improved">{suggestion.suggestion}</div>
-            </div>
-          </div>
-          
-          <div className="suggestion-actions">
-            <button onClick={() => setSuggestion(null)} className="cancel-btn">
-              Cancel
-            </button>
-            <button onClick={handleApplySuggestion} className="apply-btn">
-              Apply Suggestion
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+**Error Response (500):**
+```json
+{
+  "message": "Failed to generate suggestion",
+  "statusCode": 500
 }
 ```
 
@@ -503,7 +186,7 @@ Content-Type: application/json
   "noteId": "cm4note123",
   "originalContent": "Full note content...",
   "suggestion": "AI generated suggestion...",
-  "selectedText": "text to replace",
+  "selectedText": "text to replace", 
   "applyType": "replace",
   "position": 150
 }
@@ -511,8 +194,16 @@ Content-Type: application/json
 
 **Apply Types:**
 - `replace` - Replace selected text or entire content
-- `append` - Add to end of note
-- `insert` - Insert at specific position
+- `append` - Add to end of note with double line break
+- `insert` - Insert at specific position with line breaks
+
+**Validation Rules:**
+- `noteId`: Required string - target note ID
+- `originalContent`: Required string - current note content
+- `suggestion`: Required string - AI-generated suggestion
+- `selectedText`: Optional string - text to replace (for replace type)
+- `applyType`: Required enum - how to apply suggestion
+- `position`: Optional number - insertion position (for insert type)
 
 **Success Response (200):**
 ```json
@@ -523,110 +214,116 @@ Content-Type: application/json
 }
 ```
 
-**Frontend Integration:**
-```typescript
-// services/chatService.ts
-export async function applySuggestion(applySuggestionData: {
-  noteId: string;
-  originalContent: string;
-  suggestion: string;
-  selectedText?: string;
-  applyType: 'replace' | 'append' | 'insert';
-  position?: number;
-}) {
-  const token = localStorage.getItem('auth_token');
-  
-  const response = await fetch('/api/chat/apply-suggestion', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(applySuggestionData)
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to apply suggestion');
-  }
-
-  return response.json();
-}
-
-// Suggestion application handler
-export function useSuggestionApplication(noteId: string, currentContent: string) {
-  const [applying, setApplying] = useState(false);
-
-  const applySuggestionToNote = async (suggestion: any, applyType = 'replace') => {
-    setApplying(true);
-    
-    try {
-      const result = await applySuggestion({
-        noteId,
-        originalContent: currentContent,
-        suggestion: suggestion.suggestion,
-        selectedText: suggestion.hasSelection ? suggestion.originalText : undefined,
-        applyType,
-        position: undefined // Could be calculated based on cursor position
-      });
-      
-      return result.newContent;
-    } catch (error) {
-      toast.error('Failed to apply suggestion: ' + error.message);
-      throw error;
-    } finally {
-      setApplying(false);
-    }
-  };
-
-  return { applySuggestionToNote, applying };
+**Error Response (500):**
+```json
+{
+  "message": "Failed to apply suggestion", 
+  "statusCode": 500
 }
 ```
 
-## 🔧 AI Provider Configuration
+## 🔧 Implementation Details
 
-### Provider Priority & Fallback
-The system automatically selects the best available AI provider:
+### Authentication & Authorization
+- All endpoints protected by `JwtAuthGuard`
+- User extracted from JWT via `@CurrentUser()` decorator
+- All operations scoped to authenticated user
 
-1. **Google Gemini** (Free tier) - Primary choice
-2. **Groq** (Free tier) - Secondary fallback  
-3. **OpenAI** (Paid) - Premium option
-4. **Local fallback** - Error message if none available
+### AI Provider Configuration & Selection Logic
 
-### Model Capabilities
+**Provider Priority (based on configured API keys):**
+1. **Google Gemini** - Primary choice if `GOOGLE_GEMINI_API_KEY` configured
+2. **Groq** - Secondary fallback if `GROQ_API_KEY` configured  
+3. **OpenAI** - Used if `OPENAI_API_KEY` configured
+4. **Fallback** - Error message if no providers available
+
+**API Key Validation:**
 ```typescript
-const modelCapabilities = {
-  'gemini-1.5-flash': {
-    provider: 'Google',
-    cost: 'Free',
-    contextLength: 1000000,
-    maxOutput: 8192,
-    strengths: ['Fast', 'Good reasoning', 'Large context'],
-    weaknesses: ['Newer model']
-  },
-  'llama3-8b-8192': {
-    provider: 'Groq', 
-    cost: 'Free',
-    contextLength: 8192,
-    maxOutput: 8192,
-    strengths: ['Very fast', 'Open source'],
-    weaknesses: ['Smaller context']
-  },
-  'gpt-3.5-turbo': {
-    provider: 'OpenAI',
-    cost: 'Paid',
-    contextLength: 16384,
-    maxOutput: 4096,
-    strengths: ['Reliable', 'Well tested'],
-    weaknesses: ['Costs money']
+// Constructor logic
+if (this.geminiApiKey) {
+  console.log('✅ Google Gemini API key configured (Free tier available)');
+} else if (this.groqApiKey) {
+  console.log('✅ Groq API key configured (Free tier available)');
+} else if (this.openaiApiKey) {
+  console.log('✅ OpenAI API key configured');
+} else {
+  console.log('⚠️ No AI API key configured');
+}
+```
+
+### Model Selection & Fallback Strategy
+
+**Automatic Model Switching:**
+- If user requests GPT model but no OpenAI key → Switch to `gemini-1.5-flash`
+- OpenAI quota exceeded → Automatic Gemini fallback with retry
+- API errors → Graceful degradation with informative messages
+
+**Available Models:**
+- `gemini-1.5-flash` (Google Gemini, Free)
+- `llama3-8b-8192` (Groq, Free) 
+- `mixtral-8x7b-32768` (Groq, Free)
+- `gemma-7b-it` (Groq, Free)
+- `gpt-3.5-turbo` (OpenAI, Paid)
+- `gpt-4` (OpenAI, Paid)
+
+### Streaming Implementation
+
+**Gemini Streaming (Simulated):**
+```typescript
+// Gemini doesn't support real streaming, so we simulate it
+const stream = {
+  async *[Symbol.asyncIterator]() {
+    const words = fullText.split(' ');
+    for (let i = 0; i < words.length; i += 3) {
+      const chunk = words.slice(i, i + 3).join(' ');
+      yield { choices: [{ delta: { content: chunk } }] };
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
   }
 };
 ```
 
-## 🎯 System Prompts & Context Building
-
-### Main System Prompt (Vietnamese)
+**Groq Real Streaming:**
+```typescript
+// True streaming via Server-Sent Events
+const stream = {
+  async *[Symbol.asyncIterator]() {
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value);
+      // Parse SSE format: "data: {...}"
+    }
+  }
+};
 ```
-Bạn là trợ lý AI thông minh cho ứng dụng ghi chú cá nhân AI Notes. 
+
+**OpenAI Native Streaming:**
+```typescript
+// Uses OpenAI SDK built-in streaming
+const stream = await openai.chat.completions.create({
+  model: model,
+  messages: [{ role: 'user', content: prompt }],
+  stream: true,
+});
+```
+
+### RAG Context Building
+
+**Process Flow:**
+1. Get user settings for model and token limits
+2. Call `vectorsService.buildChatContext()` with 70% token allocation
+3. Build structured prompt with system instructions
+4. Execute AI call with appropriate provider
+5. Return stream with citations in headers
+
+**System Prompt (Vietnamese):**
+```
+Bạn là trợ lý AI thông minh cho ứng dụng ghi chú cá nhân AI Notes.
 
 🎯 NHIỆM VỤ CHÍNH:
 - Trả lời câu hỏi dựa CHÍNH XÁC trên nội dung ghi chú được cung cấp
@@ -640,42 +337,83 @@ Bạn là trợ lý AI thông minh cho ứng dụng ghi chú cá nhân AI Notes.
 4. KHÔNG bao giờ tự suy diễn hay tạo thông tin không có
 ```
 
-### Context Building Process
+### Suggestion System
+
+**Specialized Prompts per Type:**
 ```typescript
-const buildChatContext = async (query: string, userId: string) => {
-  // 1. Semantic search for relevant chunks
-  const relevantChunks = await vectorsService.semanticSearch(query, userId, 10);
-  
-  // 2. Build context with token management
-  let context = '';
-  const citations = [];
-  let tokenCount = 0;
-  const maxTokens = 3000; // 70% of model context for user content
-  
-  for (const chunk of relevantChunks) {
-    const chunkTokens = estimateTokens(chunk.chunkContent);
-    if (tokenCount + chunkTokens > maxTokens) break;
-    
-    // Add structured context
-    context += `--- ${chunk.noteTitle}${chunk.heading ? ` > ${chunk.heading}` : ''} ---\n`;
-    context += chunk.chunkContent + '\n\n';
-    
-    // Track citations  
-    citations.push({
-      title: chunk.noteTitle,
-      heading: chunk.heading
-    });
-    
-    tokenCount += chunkTokens + 20;
-  }
-  
-  return { context, citations };
+const suggestions = {
+  improve: "Vai trò: Bạn là editor chuyên nghiệp. Nhiệm vụ: Cải thiện văn phong...",
+  expand: "Vai trò: Bạn là chuyên gia nội dung. Nhiệm vụ: Mở rộng đoạn text...",
+  summarize: "Vai trò: Bạn là chuyên gia tóm tắt. Nhiệm vụ: Tóm tắt đoạn text...",
+  // ... other types
 };
 ```
 
-## 🧪 Testing Examples
+**Direct AI Calls (Non-streaming):**
+- Uses direct HTTP calls instead of streaming
+- Lower temperature (0.3) for more consistent results
+- Dedicated methods for each provider: `directGeminiCall()`, `directGroqCall()`, `directOpenAICall()`
 
-### Manual Testing with cURL
+### Suggestion Application Logic
+
+**Apply Types Implementation:**
+```typescript
+switch (data.applyType) {
+  case 'replace':
+    if (data.selectedText) {
+      newContent = newContent.replace(data.selectedText, data.suggestion);
+    } else {
+      newContent = data.suggestion;
+    }
+    break;
+  
+  case 'append':
+    newContent = newContent + '\n\n' + data.suggestion;
+    break;
+  
+  case 'insert':
+    const position = data.position || newContent.length;
+    newContent = newContent.slice(0, position) + '\n\n' + data.suggestion + '\n\n' + newContent.slice(position);
+    break;
+}
+```
+
+### Error Handling & Fallbacks
+
+**Quota Exceeded Handling:**
+```typescript
+if (error.code === 'insufficient_quota' || error.status === 429) {
+  console.log('OpenAI quota exceeded, trying free alternatives...');
+  if (this.geminiApiKey) {
+    return await this.completeWithGemini(fullPrompt, 'gemini-1.5-flash', citations);
+  }
+}
+```
+
+**Fallback Stream Creation:**
+```typescript
+private createFallbackStream(message: string, citations: any[]) {
+  const stream = {
+    async *[Symbol.asyncIterator]() {
+      const words = message.split(' ');
+      for (let i = 0; i < words.length; i += 3) {
+        const chunk = words.slice(i, i + 3).join(' ') + ' ';
+        yield { choices: [{ delta: { content: chunk } }] };
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+  };
+  return { stream, citations };
+}
+```
+
+### Service Dependencies
+- **VectorsModule**: For RAG context building and semantic search
+- **SettingsModule**: For user AI model preferences and token limits
+- **ConfigService**: For API key management
+- **OpenAI SDK**: For OpenAI API calls
+
+## 🧪 Testing Examples
 
 **Stream chat:**
 ```bash
@@ -708,152 +446,17 @@ curl -X POST http://localhost:3001/api/chat/suggest \
   }'
 ```
 
-### Complete Chat Interface Example
-```tsx
-// components/CompleteChatInterface.tsx
-export function CompleteChatInterface() {
-  const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [currentResponse, setCurrentResponse] = useState('');
-  
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, currentResponse]);
-
-  const sendMessage = async (message: string) => {
-    if (!message.trim() || isStreaming) return;
-
-    const userMessage = {
-      id: Date.now(),
-      role: 'user',
-      content: message,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsStreaming(true);
-    setCurrentResponse('');
-
-    try {
-      const { stream, citations } = await streamChatResponse(message);
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
-
-      let fullResponse = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        fullResponse += chunk;
-        setCurrentResponse(fullResponse);
-      }
-
-      const assistantMessage = {
-        id: Date.now() + 1,
-        role: 'assistant', 
-        content: fullResponse,
-        citations,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
-      setCurrentResponse('');
-
-    } catch (error) {
-      const errorMessage = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
-        error: true,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsStreaming(false);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(inputValue);
-    }
-  };
-
-  return (
-    <div className="chat-interface">
-      <div className="chat-header">
-        <h2>💬 Chat with Your Notes</h2>
-        <div className="chat-status">
-          {isStreaming && <span className="streaming">AI is thinking...</span>}
-        </div>
-      </div>
-
-      <div className="messages-container">
-        {messages.map(message => (
-          <ChatMessage key={message.id} message={message} />
-        ))}
-        
-        {isStreaming && currentResponse && (
-          <div className="streaming-message">
-            <div className="message-avatar">🤖</div>
-            <div className="message-bubble assistant">
-              <ReactMarkdown>{currentResponse}</ReactMarkdown>
-              <span className="typing-cursor">▊</span>
-            </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="chat-input-container">
-        <div className="chat-input-wrapper">
-          <textarea
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask about your notes..."
-            disabled={isStreaming}
-            rows={1}
-            className="chat-input"
-          />
-          <button 
-            onClick={() => sendMessage(inputValue)}
-            disabled={!inputValue.trim() || isStreaming}
-            className="send-button"
-          >
-            {isStreaming ? <Spinner /> : <SendIcon />}
-          </button>
-        </div>
-        
-        <div className="input-suggestions">
-          <button onClick={() => setInputValue("What are my main topics?")}>
-            What are my main topics?
-          </button>
-          <button onClick={() => setInputValue("Summarize my recent notes")}>
-            Summarize recent notes
-          </button>
-          <button onClick={() => setInputValue("Find connections between my ideas")}>
-            Find connections
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+**Apply suggestion:**
+```bash
+curl -X POST http://localhost:3001/api/chat/apply-suggestion \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "noteId": "cm4note123",
+    "originalContent": "Original content...",
+    "suggestion": "Improved content...", 
+    "applyType": "replace"
+  }'
 ```
 
 ---

@@ -1,24 +1,24 @@
 # Duplicates Detection API
 
-Smart duplicate detection system with AI-powered similarity analysis and merging capabilities.
+Intelligent duplicate detection and merging system for notes.
 
 ## 📋 Overview
 
-The duplicates detection system identifies potential duplicate notes using content analysis, semantic similarity, and title matching. It provides merge suggestions and handles conflict resolution for duplicate content.
+The duplicates system identifies similar or duplicate notes using multiple detection methods including content similarity, title matching, and semantic analysis. Provides automated detection with manual review and merging capabilities.
 
 ### Features
 - ✅ Multi-method duplicate detection (content, title, semantic)
 - ✅ Configurable similarity thresholds
-- ✅ Duplicate reports with confidence scoring
-- ✅ Smart merging with conflict resolution
-- ✅ Background processing for large datasets
-- ✅ Manual duplicate reporting and management
+- ✅ Smart merge strategies with content preservation
+- ✅ Background processing with BullMQ
+- ✅ Duplicate reports management with status tracking
+- ✅ Statistics and insights dashboard
 
 ## 🔐 Endpoints
 
 ### GET /duplicates/detect
 
-Detect duplicate notes for the authenticated user.
+Detect duplicate notes using multiple similarity detection methods.
 
 **Headers:**
 ```
@@ -26,178 +26,101 @@ Authorization: Bearer <jwt_token>
 ```
 
 **Query Parameters:**
-- `noteId` (string, optional) - Check specific note for duplicates
-- `threshold` (number, optional, default: 0.7) - Similarity threshold (0-1)
-- `type` (string, optional) - Detection type: `CONTENT`, `TITLE`, `SEMANTIC`, `ALL`
+- `noteId` (string, optional) - Check specific note for duplicates against all other notes
+- `threshold` (number, optional, default: 0.7) - Similarity threshold (0.1-1.0)
 
 **Success Response (200):**
 ```json
-[
-  {
-    "id": "cm4dup123",
-    "originalNoteId": "cm4note123",
-    "duplicateNoteId": "cm4note456",
-    "similarity": 0.87,
-    "type": "CONTENT",
-    "status": "PENDING",
-    "ownerId": "cm4user123",
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "resolvedAt": null,
-    "originalNote": {
-      "id": "cm4note123",
-      "title": "React Hooks Guide",
-      "content": "React hooks are functions that let you use state and lifecycle features...",
-      "tags": ["react", "javascript"],
-      "createdAt": "2024-01-10T09:00:00.000Z"
+{
+  "success": true,
+  "count": 2,
+  "duplicates": [
+    {
+      "originalNoteId": "cm4note123",
+      "duplicateNoteId": "cm4note456",
+      "similarity": 0.92,
+      "type": "CONTENT",
+      "suggestedAction": "MERGE"
     },
-    "duplicateNote": {
-      "id": "cm4note456", 
-      "title": "React Hooks Tutorial",
-      "content": "Hooks in React allow you to use state and lifecycle methods...",
-      "tags": ["react", "hooks"],
-      "createdAt": "2024-01-12T14:30:00.000Z"
-    },
-    "suggestedAction": "MERGE",
-    "analysisDetails": {
-      "contentSimilarity": 0.89,
-      "titleSimilarity": 0.83,
-      "tagOverlap": 0.5,
-      "semanticSimilarity": 0.91
+    {
+      "originalNoteId": "cm4note123",
+      "duplicateNoteId": "cm4note789",
+      "similarity": 0.83,
+      "type": "SEMANTIC", 
+      "suggestedAction": "REVIEW"
     }
-  }
-]
+  ],
+  "message": "Found 2 potential duplicate(s)"
+}
 ```
 
-**Response Fields:**
-- `type`: Detection method (`CONTENT`, `TITLE`, `SEMANTIC`)
-- `similarity`: Overall similarity score (0-1)
-- `suggestedAction`: `MERGE` (>0.9), `REVIEW` (0.7-0.9), `KEEP_SEPARATE` (<0.7)
-- `analysisDetails`: Breakdown of similarity factors
-- `status`: `PENDING`, `CONFIRMED`, `DISMISSED`, `MERGED`
-
-**Frontend Integration:**
-```typescript
-// services/duplicatesService.ts
-export async function detectDuplicates(options: {
-  noteId?: string;
-  threshold?: number;
-  type?: 'CONTENT' | 'TITLE' | 'SEMANTIC' | 'ALL';
-} = {}) {
-  const token = localStorage.getItem('auth_token');
-  const params = new URLSearchParams();
-  
-  if (options.noteId) params.append('noteId', options.noteId);
-  if (options.threshold) params.append('threshold', options.threshold.toString());
-  if (options.type) params.append('type', options.type);
-  
-  const url = params.toString() ? `/api/duplicates/detect?${params}` : '/api/duplicates/detect';
-  
-  const response = await fetch(url, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to detect duplicates');
-  }
-
-  return response.json();
+**Error Response (500):**
+```json
+{
+  "success": false,
+  "count": 0,
+  "duplicates": [],
+  "message": "Failed to detect duplicates",
+  "error": "Detailed error message"
 }
+```
 
-// React component for duplicates detection
-export function DuplicatesDetection() {
-  const [duplicates, setDuplicates] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [threshold, setThreshold] = useState(0.7);
-  const [detectionType, setDetectionType] = useState('ALL');
+**Suggested Actions:**
+- `MERGE`: Similarity >= 0.95 (very high confidence)
+- `REVIEW`: Similarity >= 0.85 (high confidence, manual review)
+- `KEEP_SEPARATE`: Similarity < 0.85 (low confidence)
 
-  const runDetection = async () => {
-    setLoading(true);
-    try {
-      const results = await detectDuplicates({
-        threshold,
-        type: detectionType as any
-      });
-      setDuplicates(results);
-      
-      if (results.length === 0) {
-        toast.success('No duplicates found!');
-      } else {
-        toast.info(`Found ${results.length} potential duplicates`);
+---
+
+### GET /duplicates/reports
+
+Get duplicate reports with filtering and status management.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Query Parameters:**
+- `status` (string, optional) - Filter by: 'PENDING', 'CONFIRMED', 'DISMISSED', 'MERGED'
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "count": 3,
+  "reports": [
+    {
+      "id": "cm4dup123",
+      "originalNoteId": "cm4note123",
+      "duplicateNoteId": "cm4note456",
+      "similarity": 0.92,
+      "type": "CONTENT",
+      "status": "PENDING", 
+      "ownerId": "cm4user123",
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "resolvedAt": null,
+      "originalNote": {
+        "id": "cm4note123",
+        "title": "React Hooks Guide",
+        "content": "React hooks are functions..."
+      },
+      "duplicateNote": {
+        "id": "cm4note456",
+        "title": "React Hooks Tutorial",
+        "content": "React hooks are functions..."
       }
-    } catch (error) {
-      toast.error('Duplicate detection failed: ' + error.message);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  return (
-    <div className="duplicates-detection">
-      <div className="detection-controls">
-        <h2>Duplicate Detection</h2>
-        
-        <div className="controls-row">
-          <div className="threshold-control">
-            <label>
-              Similarity Threshold: {Math.round(threshold * 100)}%
-              <input
-                type="range"
-                min="0.5"
-                max="0.95"
-                step="0.05"
-                value={threshold}
-                onChange={(e) => setThreshold(parseFloat(e.target.value))}
-              />
-            </label>
-          </div>
-          
-          <div className="type-control">
-            <label>
-              Detection Method:
-              <select 
-                value={detectionType}
-                onChange={(e) => setDetectionType(e.target.value)}
-              >
-                <option value="ALL">All Methods</option>
-                <option value="CONTENT">Content Similarity</option>
-                <option value="TITLE">Title Similarity</option>
-                <option value="SEMANTIC">Semantic Analysis</option>
-              </select>
-            </label>
-          </div>
-          
-          <button 
-            onClick={runDetection}
-            disabled={loading}
-            className="run-detection-btn"
-          >
-            {loading ? '🔍 Scanning...' : '🔍 Find Duplicates'}
-          </button>
-        </div>
-      </div>
-
-      {duplicates.length > 0 && (
-        <div className="duplicates-results">
-          <h3>Potential Duplicates ({duplicates.length})</h3>
-          {duplicates.map(duplicate => (
-            <DuplicateCard 
-              key={duplicate.id} 
-              duplicate={duplicate}
-              onResolved={runDetection}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  ],
+  "statusFilter": "PENDING"
 }
 ```
 
 ---
 
-### POST /duplicates/merge
+### POST /duplicates/reports
 
-Merge two duplicate notes into one.
+Create a duplicate report manually.
 
 **Headers:**
 ```
@@ -209,267 +132,51 @@ Content-Type: application/json
 ```json
 {
   "originalNoteId": "cm4note123",
-  "duplicateNoteId": "cm4note456",
-  "mergeStrategy": "APPEND",
-  "keepTitle": "ORIGINAL",
-  "mergeTags": true
+  "duplicateNoteId": "cm4note456", 
+  "similarity": 0.87,
+  "type": "CONTENT"
 }
 ```
 
-**Merge Strategies:**
-- `REPLACE`: Replace original with duplicate content
-- `APPEND`: Append duplicate content to original
-- `PREPEND`: Prepend duplicate content to original
-- `MANUAL`: Custom merge (requires `customContent`)
+**Validation Rules:**
+- `originalNoteId`: Required string (@IsString)
+- `duplicateNoteId`: Required string (@IsString)
+- `similarity`: Required number 0-1 (@IsNumber @Min(0) @Max(1))
+- `type`: Required enum 'CONTENT' | 'TITLE' | 'SEMANTIC' (@IsEnum)
 
-**Success Response (200):**
+**Success Response (201):**
 ```json
 {
-  "mergedNote": {
-    "id": "cm4note123",
-    "title": "React Hooks Guide",
-    "content": "React hooks are functions that let you use state and lifecycle features...\n\n---\n\n## From: React Hooks Tutorial\n\nHooks in React allow you to use state and lifecycle methods...",
-    "tags": ["react", "javascript", "hooks", "tutorial"],
-    "workspaceId": "cm4workspace123",
-    "ownerId": "cm4user123",
-    "createdAt": "2024-01-10T09:00:00.000Z",
-    "updatedAt": "2024-01-15T12:00:00.000Z"
-  },
-  "deletedNoteId": "cm4note456",
-  "mergeDetails": {
-    "strategy": "APPEND",
-    "originalLength": 245,
-    "duplicateLength": 189,
-    "mergedLength": 456,
-    "tagsAdded": ["hooks", "tutorial"],
-    "timestamp": "2024-01-15T12:00:00.000Z"
-  }
-}
-```
-
-**Frontend Integration:**
-```typescript
-// services/duplicatesService.ts
-export async function mergeDuplicates(mergeData: {
-  originalNoteId: string;
-  duplicateNoteId: string;
-  mergeStrategy?: 'REPLACE' | 'APPEND' | 'PREPEND' | 'MANUAL';
-  keepTitle?: 'ORIGINAL' | 'DUPLICATE' | 'CUSTOM';
-  customTitle?: string;
-  customContent?: string;
-  mergeTags?: boolean;
-}) {
-  const token = localStorage.getItem('auth_token');
-  
-  const response = await fetch('/api/duplicates/merge', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(mergeData)
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to merge notes');
-  }
-
-  return response.json();
-}
-
-// React component for merge dialog
-export function MergeDialog({ duplicate, onMerged, onCancel }) {
-  const [mergeStrategy, setMergeStrategy] = useState('APPEND');
-  const [keepTitle, setKeepTitle] = useState('ORIGINAL');
-  const [customTitle, setCustomTitle] = useState('');
-  const [mergeTags, setMergeTags] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [preview, setPreview] = useState('');
-
-  const generatePreview = () => {
-    const { originalNote, duplicateNote } = duplicate;
-    let previewContent = '';
-    
-    switch (mergeStrategy) {
-      case 'REPLACE':
-        previewContent = duplicateNote.content;
-        break;
-      case 'APPEND':
-        previewContent = originalNote.content + '\n\n---\n\n## From: ' + duplicateNote.title + '\n\n' + duplicateNote.content;
-        break;
-      case 'PREPEND':
-        previewContent = '## From: ' + duplicateNote.title + '\n\n' + duplicateNote.content + '\n\n---\n\n' + originalNote.content;
-        break;
-      default:
-        previewContent = originalNote.content;
-    }
-    
-    setPreview(previewContent);
-  };
-
-  useEffect(() => {
-    generatePreview();
-  }, [mergeStrategy, duplicate]);
-
-  const handleMerge = async () => {
-    setLoading(true);
-    try {
-      const result = await mergeDuplicates({
-        originalNoteId: duplicate.originalNoteId,
-        duplicateNoteId: duplicate.duplicateNoteId,
-        mergeStrategy: mergeStrategy as any,
-        keepTitle: keepTitle as any,
-        customTitle: keepTitle === 'CUSTOM' ? customTitle : undefined,
-        mergeTags
-      });
-      
-      onMerged(result);
-      toast.success('Notes merged successfully!');
-    } catch (error) {
-      toast.error('Merge failed: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="merge-dialog">
-      <div className="merge-dialog-header">
-        <h3>Merge Duplicate Notes</h3>
-        <button onClick={onCancel} className="close-btn">×</button>
-      </div>
-
-      <div className="merge-options">
-        <div className="option-group">
-          <label>Merge Strategy:</label>
-          <select 
-            value={mergeStrategy}
-            onChange={(e) => setMergeStrategy(e.target.value)}
-          >
-            <option value="APPEND">Append duplicate to original</option>
-            <option value="PREPEND">Prepend duplicate to original</option>
-            <option value="REPLACE">Replace original with duplicate</option>
-          </select>
-        </div>
-
-        <div className="option-group">
-          <label>Keep Title:</label>
-          <select 
-            value={keepTitle}
-            onChange={(e) => setKeepTitle(e.target.value)}
-          >
-            <option value="ORIGINAL">Keep original title</option>
-            <option value="DUPLICATE">Use duplicate title</option>
-            <option value="CUSTOM">Custom title</option>
-          </select>
-          
-          {keepTitle === 'CUSTOM' && (
-            <input
-              type="text"
-              value={customTitle}
-              onChange={(e) => setCustomTitle(e.target.value)}
-              placeholder="Enter custom title"
-            />
-          )}
-        </div>
-
-        <div className="option-group">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={mergeTags}
-              onChange={(e) => setMergeTags(e.target.checked)}
-            />
-            Merge tags from both notes
-          </label>
-        </div>
-      </div>
-
-      <div className="merge-preview">
-        <h4>Preview Result:</h4>
-        <div className="preview-content">
-          <h5>
-            {keepTitle === 'ORIGINAL' ? duplicate.originalNote.title :
-             keepTitle === 'DUPLICATE' ? duplicate.duplicateNote.title :
-             customTitle || 'Merged Note'}
-          </h5>
-          <div className="content-preview">
-            {preview.substring(0, 500)}
-            {preview.length > 500 && '...'}
-          </div>
-          
-          {mergeTags && (
-            <div className="tags-preview">
-              Tags: {[...new Set([
-                ...duplicate.originalNote.tags,
-                ...duplicate.duplicateNote.tags
-              ])].join(', ')}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="merge-actions">
-        <button onClick={onCancel} className="cancel-btn">
-          Cancel
-        </button>
-        <button 
-          onClick={handleMerge}
-          disabled={loading}
-          className="merge-btn"
-        >
-          {loading ? 'Merging...' : '🔗 Merge Notes'}
-        </button>
-      </div>
-    </div>
-  );
-}
-```
-
----
-
-### GET /duplicates/reports
-
-Get existing duplicate reports with filtering options.
-
-**Headers:**
-```
-Authorization: Bearer <jwt_token>
-```
-
-**Query Parameters:**
-- `status` (string, optional) - Filter by status: `PENDING`, `CONFIRMED`, `DISMISSED`, `MERGED`
-- `type` (string, optional) - Filter by detection type
-- `limit` (number, optional, default: 20) - Results limit
-
-**Success Response (200):**
-```json
-[
-  {
-    "id": "cm4dup123",
+  "success": true,
+  "report": {
+    "id": "cm4dup789",
     "originalNoteId": "cm4note123",
     "duplicateNoteId": "cm4note456",
     "similarity": 0.87,
-    "type": "CONTENT",
-    "status": "CONFIRMED",
+    "type": "CONTENT", 
+    "status": "PENDING",
     "ownerId": "cm4user123",
-    "createdAt": "2024-01-15T10:30:00.000Z",
-    "resolvedAt": "2024-01-15T14:20:00.000Z",
+    "createdAt": "2024-01-15T11:00:00.000Z",
+    "resolvedAt": null,
     "originalNote": {
       "id": "cm4note123",
-      "title": "React Hooks Guide",
-      "content": "React hooks are functions...",
-      "tags": ["react", "javascript"]
+      "title": "React Hooks Guide"
     },
     "duplicateNote": {
-      "id": "cm4note456",
-      "title": "React Hooks Tutorial", 
-      "content": "Hooks in React allow...",
-      "tags": ["react", "hooks"]
+      "id": "cm4note456", 
+      "title": "React Hooks Tutorial"
     }
-  }
-]
+  },
+  "message": "Duplicate report created successfully"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "message": "One or both notes not found or not owned by user"
+}
 ```
 
 ---
@@ -485,7 +192,7 @@ Content-Type: application/json
 ```
 
 **Parameters:**
-- `id` (string) - Duplicate report ID
+- `id` (string) - Report ID
 
 **Request Body:**
 ```json
@@ -494,31 +201,33 @@ Content-Type: application/json
 }
 ```
 
-**Status Values:**
-- `CONFIRMED` - User confirmed they are duplicates
-- `DISMISSED` - User dismissed as not duplicates  
-- `MERGED` - Notes have been merged (set automatically)
+**Validation Rules:**
+- `status`: Required enum 'CONFIRMED' | 'DISMISSED' | 'MERGED' (@IsEnum)
 
 **Success Response (200):**
 ```json
 {
-  "id": "cm4dup123",
-  "originalNoteId": "cm4note123", 
-  "duplicateNoteId": "cm4note456",
-  "similarity": 0.87,
-  "type": "CONTENT",
-  "status": "CONFIRMED",
-  "ownerId": "cm4user123",
-  "createdAt": "2024-01-15T10:30:00.000Z",
-  "resolvedAt": "2024-01-15T15:30:00.000Z"
+  "success": true,
+  "report": {
+    "id": "cm4dup123",
+    "originalNoteId": "cm4note123",
+    "duplicateNoteId": "cm4note456",
+    "similarity": 0.92,
+    "type": "CONTENT",
+    "status": "CONFIRMED",
+    "ownerId": "cm4user123",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "resolvedAt": "2024-01-15T12:00:00.000Z"
+  },
+  "message": "Report status updated to CONFIRMED"
 }
 ```
 
 ---
 
-### POST /duplicates/queue-detection
+### POST /duplicates/merge
 
-Queue background duplicate detection job for all notes.
+Merge duplicate notes with content preservation.
 
 **Headers:**
 ```
@@ -529,166 +238,215 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "threshold": 0.75,
-  "includeTypes": ["CONTENT", "SEMANTIC"]
+  "originalNoteId": "cm4note123",
+  "duplicateNoteId": "cm4note456"
+}
+```
+
+**Validation Rules:**
+- `originalNoteId`: Required string (@IsString)
+- `duplicateNoteId`: Required string (@IsString)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "mergedNote": {
+    "id": "cm4note123",
+    "title": "React Hooks Guide", 
+    "content": "React hooks are functions that let you use state...\n\n---\n\nReact hooks are functions that allow you to use state...",
+    "tags": ["react", "hooks", "tutorial"],
+    "workspaceId": "cm4workspace123",
+    "ownerId": "cm4user123",
+    "isDeleted": false,
+    "createdAt": "2024-01-10T09:00:00.000Z",
+    "updatedAt": "2024-01-15T12:30:00.000Z"
+  },
+  "deletedNoteId": "cm4note456",
+  "message": "Notes merged successfully"
+}
+```
+
+**Merge Logic:**
+- Original note content is preserved
+- Duplicate note content is appended with separator (`\n\n---\n\n`)
+- Tags are merged (union of both sets)
+- Duplicate note is soft deleted (`isDeleted: true`)
+- All related duplicate reports marked as 'MERGED'
+- Vector embeddings reprocessed for merged note
+
+**Error Response (404):**
+```json
+{
+  "success": false,
+  "message": "One or both notes not found",
+  "error": "Note not found or not owned by user"
+}
+```
+
+---
+
+### POST /duplicates/queue-detection
+
+Queue background duplicate detection job.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "noteId": "cm4note123"
 }
 ```
 
 **Success Response (202):**
 ```json
 {
-  "message": "Duplicate detection queued",
-  "jobId": "job_cm4detection123",
-  "estimatedDuration": "2-5 minutes",
-  "notesToProcess": 156
+  "success": true,
+  "message": "Duplicate detection job queued successfully",
+  "noteId": "cm4note123"
 }
 ```
 
-**Frontend Integration:**
-```typescript
-// services/duplicatesService.ts
-export async function queueDuplicateDetection(options: {
-  threshold?: number;
-  includeTypes?: string[];
-}) {
-  const token = localStorage.getItem('auth_token');
-  
-  const response = await fetch('/api/duplicates/queue-detection', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(options)
-  });
+---
 
-  if (!response.ok) {
-    throw new Error('Failed to queue duplicate detection');
+### GET /duplicates/stats
+
+Get duplicate detection statistics.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "stats": {
+    "totalReports": 15,
+    "pendingReports": 8,
+    "mergedReports": 3,
+    "resolvedReports": 7
   }
-
-  return response.json();
-}
-
-// React component for background detection
-export function BackgroundDetection() {
-  const [detecting, setDetecting] = useState(false);
-  const [progress, setProgress] = useState(0);
-
-  const runBackgroundDetection = async () => {
-    setDetecting(true);
-    setProgress(0);
-    
-    try {
-      const result = await queueDuplicateDetection({
-        threshold: 0.75,
-        includeTypes: ['CONTENT', 'SEMANTIC']
-      });
-      
-      toast.success(`Detection queued for ${result.notesToProcess} notes`);
-      
-      // Poll for progress (simplified)
-      const pollProgress = setInterval(async () => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(pollProgress);
-            setDetecting(false);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 1000);
-      
-    } catch (error) {
-      toast.error('Failed to start detection: ' + error.message);
-      setDetecting(false);
-    }
-  };
-
-  return (
-    <div className="background-detection">
-      <h3>Background Duplicate Detection</h3>
-      <p>Scan all your notes for potential duplicates</p>
-      
-      {detecting && (
-        <div className="detection-progress">
-          <div className="progress-bar">
-            <div 
-              className="progress-fill"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span>{progress}% complete</span>
-        </div>
-      )}
-      
-      <button 
-        onClick={runBackgroundDetection}
-        disabled={detecting}
-        className="start-detection-btn"
-      >
-        {detecting ? '⏳ Detecting...' : '🚀 Start Background Scan'}
-      </button>
-    </div>
-  );
 }
 ```
 
-## 🔧 Duplicate Detection Algorithm
+## 🔧 Detection Algorithms
 
-### Detection Methods
+### Multi-Method Similarity Detection
 
-1. **Content Similarity**
-   - Uses Jaccard similarity for text comparison
-   - Analyzes sentence structure and word order
-   - Removes common words and focuses on meaningful content
-   - Threshold: Content similarity > 0.7
+The system uses a sophisticated three-tier detection approach:
 
-2. **Title Similarity**
-   - Levenshtein distance for character-level comparison
-   - Fuzzy matching for similar titles with typos
-   - Word-based similarity for reordered titles
-   - Threshold: Title similarity > 0.8
+**1. Title Similarity (Fast)**
+```typescript
+const titleSimilarity = stringSimilarity.compareTwoStrings(
+  note1.title.toLowerCase(),
+  note2.title.toLowerCase()
+);
+```
 
-3. **Semantic Similarity**
-   - Vector embeddings using AI models
-   - Cosine similarity between note embeddings
-   - Understands conceptual similarity beyond exact words
-   - Threshold: Semantic similarity > 0.75
+**2. Content Similarity (Comprehensive)**
+```typescript
+// Weighted combination of multiple metrics
+const contentSimilarity = (basicSimilarity * 0.6) + (jaccardSimilarity * 0.4);
 
-4. **Combined Scoring**
-   ```typescript
-   const duplicateScore = {
-     content: contentSimilarity * 0.4,
-     title: titleSimilarity * 0.3,
-     semantic: semanticSimilarity * 0.2,
-     tags: tagOverlap * 0.1
-   };
-   
-   const finalScore = Object.values(duplicateScore).reduce((a, b) => a + b, 0);
-   ```
+// Basic string similarity
+const basicSimilarity = stringSimilarity.compareTwoStrings(cleanContent1, cleanContent2);
 
-### Smart Merging Features
+// Jaccard similarity (token-based overlap)
+const jaccardSimilarity = intersection.size / union.size;
+```
 
-**Conflict Resolution:**
-- Side-by-side content comparison
-- Highlighted differences
-- User choice for each conflict section
-- Automatic tag and metadata merging
+**3. Semantic Similarity (AI-Powered)**
+```typescript
+// Cosine similarity between vector embeddings
+const cosineSimilarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+// Uses stored OpenAI embeddings when available
+```
 
-**Merge Strategies:**
-- **Append**: Keep original structure, add duplicate content as new section
-- **Prepend**: Add duplicate content before original
-- **Replace**: Use duplicate content entirely
-- **Manual**: Custom merge with user control
+### Content Preprocessing
+```typescript
+private cleanContent(content: string): string {
+  return content
+    .replace(/[#*_`~]/g, '') // Remove markdown formatting
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
+    .replace(/\n+/g, ' ') // Replace newlines with spaces
+    .replace(/\s+/g, ' ') // Normalize spaces
+    .trim()
+    .toLowerCase();
+}
+```
+
+### Performance Optimizations
+- **Early Exit**: Skip semantic similarity for low content similarity (< 0.3)
+- **Batch Limiting**: Process maximum 500 notes for individual checks, 200 for comparisons
+- **Recent First**: Order by `updatedAt: 'desc'` for most relevant matches
+- **Duplicate Avoidance**: Skip already compared pairs to prevent redundant work
+
+## 🔄 Background Processing System
+
+### BullMQ Queue Configuration
+```typescript
+// Queue: 'duplicate-detection'
+defaultJobOptions: {
+  removeOnComplete: 5,
+  removeOnFail: 3,
+  attempts: 2,
+  backoff: { type: 'exponential', delay: 3000 }
+}
+```
+
+### Job Types Handled by DuplicatesProcessor
+
+**1. detect-duplicates**
+- Individual note duplicate detection
+- Auto-creates reports for high confidence matches (>= 0.85)
+- Progress tracking with job updates
+
+**2. batch-duplicate-check**
+- Process multiple notes with rate limiting
+- 500ms delay every 10 notes to prevent system overload
+- Comprehensive results with success/failure tracking
+
+**3. auto-merge-high-confidence**
+- Automatically merges duplicates with >= 0.95 similarity
+- Limited to 20 reports per run to prevent overwhelming
+- Updates all related reports to 'MERGED' status
+
+**4. cleanup-dismissed-reports**
+- Removes dismissed reports older than specified days
+- Helps maintain database performance
+
+### Error Handling & Resilience
+- **Graceful Degradation**: Individual comparison failures don't stop entire process
+- **Progress Reporting**: Regular progress updates (every 25%)
+- **Comprehensive Logging**: Success/failure tracking with detailed error messages
+- **Retry Strategy**: Exponential backoff for transient failures
 
 ## 🧪 Testing Examples
 
-### Manual Testing with cURL
-
-**Detect duplicates:**
+**Detect duplicates for specific note:**
 ```bash
-curl -X GET "http://localhost:3001/api/duplicates/detect?threshold=0.75&type=ALL" \
+curl -X GET "http://localhost:3001/api/duplicates/detect?noteId=NOTE_ID&threshold=0.8" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Create duplicate report:**
+```bash
+curl -X POST http://localhost:3001/api/duplicates/reports \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "originalNoteId": "cm4note123",
+    "duplicateNoteId": "cm4note456",
+    "similarity": 0.87,
+    "type": "CONTENT"
+  }'
 ```
 
 **Merge notes:**
@@ -697,158 +455,19 @@ curl -X POST http://localhost:3001/api/duplicates/merge \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "originalNoteId": "cm4note123",
-    "duplicateNoteId": "cm4note456",
-    "mergeStrategy": "APPEND",
-    "keepTitle": "ORIGINAL",
-    "mergeTags": true
+    "originalNoteId": "cm4note123", 
+    "duplicateNoteId": "cm4note456"
   }'
 ```
 
-### Complete React Duplicates Manager
-```tsx
-// components/DuplicatesManager.tsx
-export function DuplicatesManager() {
-  const [duplicates, setDuplicates] = useState([]);
-  const [showMergeDialog, setShowMergeDialog] = useState(false);
-  const [selectedDuplicate, setSelectedDuplicate] = useState(null);
-  const [filters, setFilters] = useState({
-    status: 'PENDING',
-    type: 'ALL',
-    threshold: 0.7
-  });
-
-  const loadDuplicates = async () => {
-    try {
-      const results = await detectDuplicates(filters);
-      setDuplicates(results);
-    } catch (error) {
-      toast.error('Failed to load duplicates');
-    }
-  };
-
-  const handleMergeClick = (duplicate) => {
-    setSelectedDuplicate(duplicate);
-    setShowMergeDialog(true);
-  };
-
-  const handleMergeComplete = (result) => {
-    toast.success('Notes merged successfully');
-    setShowMergeDialog(false);
-    setSelectedDuplicate(null);
-    loadDuplicates(); // Refresh list
-  };
-
-  const handleDismissDuplicate = async (duplicateId) => {
-    try {
-      await updateDuplicateStatus(duplicateId, 'DISMISSED');
-      toast.success('Duplicate dismissed');
-      loadDuplicates();
-    } catch (error) {
-      toast.error('Failed to dismiss duplicate');
-    }
-  };
-
-  return (
-    <div className="duplicates-manager">
-      <div className="duplicates-header">
-        <h2>Duplicate Notes Management</h2>
-        <DuplicateFilters 
-          filters={filters}
-          onFiltersChange={setFilters}
-          onSearch={loadDuplicates}
-        />
-      </div>
-
-      <div className="duplicates-content">
-        {duplicates.length === 0 ? (
-          <EmptyState message="No duplicate notes found" />
-        ) : (
-          <div className="duplicates-list">
-            {duplicates.map(duplicate => (
-              <DuplicateCard
-                key={duplicate.id}
-                duplicate={duplicate}
-                onMerge={() => handleMergeClick(duplicate)}
-                onDismiss={() => handleDismissDuplicate(duplicate.id)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {showMergeDialog && selectedDuplicate && (
-        <MergeDialog
-          duplicate={selectedDuplicate}
-          onMerged={handleMergeComplete}
-          onCancel={() => setShowMergeDialog(false)}
-        />
-      )}
-    </div>
-  );
-}
+**Queue detection job:**
+```bash
+curl -X POST http://localhost:3001/api/duplicates/queue-detection \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"noteId": "cm4note123"}'
 ```
-
-## ❌ Common Issues and Solutions
-
-### Issue: "Too many false positives"
-**Cause:** Threshold set too low
-**Solution:** Increase similarity threshold or add more specific keywords
-
-### Issue: "Missing obvious duplicates"
-**Cause:** Threshold set too high or different writing styles
-**Solution:** Lower threshold and use multiple detection methods
-
-### Issue: "Merge conflicts"
-**Cause:** Significant differences in note structure
-**Solution:** Use manual merge strategy with side-by-side comparison
-
-### Issue: "Performance issues with large datasets"
-**Cause:** Processing many notes simultaneously
-**Solution:** Use background queue processing and pagination
-
-## 🎯 Advanced Features
-
-### Batch Operations
-```typescript
-// Batch merge multiple duplicates
-export async function batchMergeDuplicates(mergeRequests: MergeRequest[]) {
-  const results = await Promise.all(
-    mergeRequests.map(request => mergeDuplicates(request))
-  );
-  
-  return {
-    successful: results.filter(r => r.success).length,
-    failed: results.filter(r => !r.success).length,
-    results
-  };
-}
-```
-
-### Smart Suggestions
-```typescript
-// AI-powered merge suggestions
-export async function getMergeSuggestions(duplicate: Duplicate) {
-  const suggestions = await analyzeContent(
-    duplicate.originalNote.content,
-    duplicate.duplicateNote.content
-  );
-  
-  return {
-    recommendedStrategy: suggestions.bestStrategy,
-    confidenceScore: suggestions.confidence,
-    reasonsToMerge: suggestions.reasons,
-    potentialIssues: suggestions.warnings
-  };
-}
-```
-
-### Analytics Dashboard
-- Duplicate detection statistics
-- Most common duplicate patterns
-- User merge behavior analysis
-- Content quality improvement suggestions
 
 ---
 
-**Next:** [Related Notes Discovery API](./03-relations.md)
+**Next:** [Relations Discovery API](./03-relations.md)

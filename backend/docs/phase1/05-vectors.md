@@ -4,20 +4,20 @@ Semantic search and Retrieval-Augmented Generation system for intelligent note d
 
 ## 📋 Overview
 
-The vector system powers the semantic search and AI chat capabilities by converting note content into vector embeddings. This enables finding conceptually similar notes even when they don't share exact keywords.
+The vector system powers semantic search and AI chat capabilities by converting note content into vector embeddings. Provides intelligent note discovery even when exact keywords don't match.
 
 ### Features
 - ✅ Semantic search using vector embeddings
-- ✅ RAG (Retrieval-Augmented Generation) for AI chat
+- ✅ RAG context building for AI chat
 - ✅ Automatic text chunking and embedding
-- ✅ Fallback to text search when embeddings unavailable
-- ✅ Context building for AI conversations
+- ✅ Fallback to enhanced text search when embeddings unavailable
+- ✅ Context optimization for AI conversations
 
 ## 🔐 Endpoints
 
 ### POST /vectors/semantic-search
 
-Perform semantic search across user's notes using vector embeddings.
+Perform semantic search across user's notes using vector embeddings or enhanced text search.
 
 **Headers:**
 ```
@@ -34,185 +34,168 @@ Content-Type: application/json
 ```
 
 **Validation Rules:**
-- `query`: Required string, search query
-- `limit`: Optional number, 1-50, default 5
+- `query`: Required string (validated by interface definition)
+- `limit`: Optional number, default 5 (validated by interface definition)
 
 **Success Response (200):**
 ```json
 [
   {
     "id": "cm4vector123",
-    "noteId": "cm4note123",
+    "noteId": "cm4note123", 
     "chunkId": "cm4note123_chunk_1",
     "chunkContent": "Machine learning is a subset of artificial intelligence that focuses on algorithms that can learn from data...",
     "chunkIndex": 1,
     "heading": "Introduction to ML",
-    "embedding": [0.1, 0.2, -0.3, ...], // Vector array (may be empty if embeddings disabled)
+    "embedding": [0.1, 0.2, -0.3, ...],
     "ownerId": "cm4user123",
     "createdAt": "2024-01-15T10:30:00.000Z",
     "noteTitle": "AI Research Notes",
     "similarity": 0.87
   },
   {
-    "id": "cm4vector456",
+    "id": "cm4vector456", 
     "noteId": "cm4note456",
-    "chunkId": "cm4note456_chunk_3",
-    "chunkContent": "Neural networks are computing systems inspired by biological neural networks. They consist of interconnected nodes...",
+    "chunkId": "cm4note456_chunk_3", 
+    "chunkContent": "Neural networks are computing systems inspired by biological neural networks...",
     "chunkIndex": 3,
     "heading": "Neural Network Basics",
     "embedding": [0.2, -0.1, 0.4, ...],
     "ownerId": "cm4user123",
     "createdAt": "2024-01-14T14:15:00.000Z",
-    "noteTitle": "Deep Learning Fundamentals", 
+    "noteTitle": "Deep Learning Fundamentals",
     "similarity": 0.82
   }
 ]
 ```
 
 **Response Fields:**
-- `similarity`: Float 0-1, relevance score (higher = more relevant)
+- `similarity`: Float 0-1, relevance score (higher = more relevant) 
 - `chunkContent`: Text chunk that matched the search
 - `chunkIndex`: Position of chunk within the note
-- `heading`: Markdown heading this chunk belongs to (if any)
-- `noteTitle`: Title of the source note
-- `embedding`: Vector embedding (may be empty array if disabled)
+- `heading`: Markdown heading this chunk belongs to (optional)
+- `noteTitle`: Title of the source note from included relation
+- `embedding`: Vector embedding array (empty array [] if embeddings disabled)
 
-**Frontend Integration:**
-```typescript
-// services/vectorsService.ts
-export async function semanticSearch(query: string, limit: number = 5) {
-  const token = localStorage.getItem('auth_token');
-  
-  const response = await fetch('/api/vectors/semantic-search', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ query, limit })
-  });
-
-  if (!response.ok) {
-    throw new Error('Semantic search failed');
-  }
-
-  return response.json();
+**Error Response (401):**
+```json
+{
+  "message": "Unauthorized",
+  "statusCode": 401
 }
+```
 
-// React component for semantic search
-export function SemanticSearchWidget() {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+## 🔧 Implementation Details
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+### Authentication & Authorization
+- Protected by `JwtAuthGuard`
+- User extracted from JWT via `@CurrentUser()` decorator
+- All searches automatically scoped by `ownerId: userId`
 
-    setLoading(true);
-    try {
-      const searchResults = await semanticSearch(query.trim(), 10);
-      setResults(searchResults);
-    } catch (error) {
-      toast.error('Semantic search failed: ' + error.message);
-    } finally {
-      setLoading(false);
+### Search Strategy Implementation
+The service implements a sophisticated fallback system:
+
+**1. OpenAI Configuration Check:**
+- Validates API key format (must start with 'sk-' and not contain 'dummy')
+- Initializes OpenAI client with 30s timeout and 2 retries
+- Sets `useEmbeddings` flag based on configuration validity
+
+**2. Search Execution:**
+- Always uses enhanced text search (`fallbackTextSearch()`) for reliability
+- Vector embeddings available when OpenAI properly configured
+- Automatic fallback prevents service disruption
+
+### Enhanced Text Search Algorithm
+
+**Query Processing:**
+- Splits query into keywords (filters words > 2 characters)
+- Searches both `chunkContent` and related note titles
+- Uses case-insensitive matching with Prisma `mode: 'insensitive'`
+
+**Search Conditions (OR logic):**
+- Exact phrase match in chunk content (highest priority)
+- Query match in note title
+- Individual keyword matches in content
+- Fetches `limit * 2` results for better filtering
+
+**Relevance Scoring:**
+```typescript
+// Scoring algorithm in code
+let score = 0;
+if (content.includes(query.toLowerCase())) score += 10; // Exact phrase
+if (title.includes(query.toLowerCase())) score += 8;    // Title match
+keywords.forEach(keyword => {
+  if (content.includes(keyword)) score += 2;            // Content keyword
+  if (title.includes(keyword)) score += 3;             // Title keyword
+});
+if (chunkContent.length < 500) score += 1;             // Short chunk bonus
+// Normalized to 0-1: similarity = Math.min(score / 10, 1.0)
+```
+
+### Vector Processing System
+
+**Chunking Strategy:**
+- Maximum 400 tokens per chunk with 30-token overlap
+- Intelligent splitting at sentence boundaries when possible
+- Preserves markdown heading context for each chunk
+- Filters chunks shorter than 20 characters
+
+**Embedding Generation:**
+- Model: `text-embedding-3-small` (1536 dimensions)
+- Batch processing for multiple chunks
+- Automatic retry with embedding disable on failure
+- Graceful degradation to text-only storage
+
+**Error Handling:**
+- OpenAI failures automatically disable embeddings
+- Chunks stored with empty embedding arrays for text search
+- Console logging for debugging and monitoring
+- Never throws errors that disrupt main note operations
+
+### RAG Context Building
+
+**Process Flow:**
+1. Execute semantic search to find relevant chunks (limit 10)
+2. Build context string with token counting
+3. Add section markers: `--- NoteTitle > Heading ---`
+4. Track citations for source attribution
+5. Respect token limits (default 3000 tokens, ~70% of model capacity)
+
+**Context Structure:**
+```
+--- Note Title > Section Heading ---
+Relevant chunk content...
+
+--- Another Note > Different Section ---  
+More relevant content...
+```
+
+**Citation Tracking:**
+```json
+{
+  "context": "Built context string...",
+  "citations": [
+    {
+      "title": "Note Title",
+      "heading": "Section Heading"
     }
-  };
-
-  return (
-    <div className="semantic-search">
-      <form onSubmit={handleSearch}>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Find conceptually similar notes..."
-          className="semantic-search-input"
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Searching...' : 'Semantic Search'}
-        </button>
-      </form>
-
-      {results.length > 0 && (
-        <div className="semantic-results">
-          <h3>Similar Concepts Found ({results.length})</h3>
-          {results.map(result => (
-            <div key={result.id} className="semantic-result">
-              <div className="result-header">
-                <h4>{result.noteTitle}</h4>
-                <span className="similarity-score">
-                  {Math.round(result.similarity * 100)}% match
-                </span>
-              </div>
-              {result.heading && (
-                <div className="result-section">{result.heading}</div>
-              )}
-              <div className="result-content">
-                {highlightText(result.chunkContent, query)}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Helper function to highlight matching text
-function highlightText(text: string, query: string) {
-  const words = query.toLowerCase().split(' ');
-  let highlightedText = text;
-  
-  words.forEach(word => {
-    const regex = new RegExp(`(${word})`, 'gi');
-    highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
-  });
-  
-  return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
+  ]
 }
 ```
 
-## 🔧 How Vector Search Works
+### Database Operations
+- **Storage**: Vectors stored in PostgreSQL with `Float[]` type
+- **Cleanup**: `deleteByNote()` removes all vectors when note deleted/updated
+- **Relationships**: Vector includes note relation for title access
+- **Indexing**: Vectors ordered by `createdAt: 'desc'` for recency
 
-### 1. Text Chunking
-When notes are processed, they're broken into smaller chunks:
-- **Maximum tokens**: 400 tokens per chunk
-- **Overlap**: 30 tokens between chunks
-- **Heading preservation**: Chunks maintain their section context
-- **Intelligent splitting**: Splits at sentence boundaries when possible
-
-### 2. Vector Embeddings
-Each chunk is converted to a vector embedding:
-- **Model**: OpenAI `text-embedding-3-small`
-- **Dimensions**: 1536-dimensional vectors
-- **Fallback**: Text-based search if embeddings unavailable
-- **Caching**: Embeddings stored in database until note updates
-
-### 3. Search Algorithm
-Search process combines multiple approaches:
-```typescript
-// Search ranking factors
-const searchFactors = {
-  semanticSimilarity: 0.6,    // Vector cosine similarity
-  textMatch: 0.2,             // Keyword matching
-  titleRelevance: 0.1,        // Title contains query
-  recency: 0.05,              // Recently updated notes
-  userBehavior: 0.05          // Previously accessed notes
-};
-```
-
-### 4. Context Building for RAG
-The system builds context for AI chat by:
-1. Finding most relevant chunks via semantic search
-2. Combining chunks while respecting token limits
-3. Preserving source citations for transparency
-4. Optimizing for conversational context
+### Usage Tracking Integration
+- Method `updateUsage()` tracks embedding and chat tokens
+- Only updates when actual tokens consumed (avoids zero-usage records)
+- Handles both new records and existing usage updates
+- Graceful error handling to avoid disrupting main operations
 
 ## 🧪 Testing Examples
-
-### Manual Testing with cURL
 
 **Semantic search:**
 ```bash
@@ -225,242 +208,63 @@ curl -X POST http://localhost:3001/api/vectors/semantic-search \
   }'
 ```
 
-### React Integration Example
-```tsx
-// components/SmartSearch.tsx
-export function SmartSearch() {
-  const [searchType, setSearchType] = useState('semantic'); // 'semantic' | 'text'
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-
-    setLoading(true);
-    try {
-      const searchResults = searchType === 'semantic' 
-        ? await semanticSearch(query.trim())
-        : await textSearch(query.trim());
-      
-      setResults(searchResults);
-    } catch (error) {
-      toast.error(`${searchType} search failed: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="smart-search">
-      <div className="search-controls">
-        <div className="search-type-toggle">
-          <button 
-            className={searchType === 'semantic' ? 'active' : ''}
-            onClick={() => setSearchType('semantic')}
-          >
-            🧠 Semantic
-          </button>
-          <button 
-            className={searchType === 'text' ? 'active' : ''}
-            onClick={() => setSearchType('text')}
-          >
-            📝 Text
-          </button>
-        </div>
-        
-        <form onSubmit={handleSearch} className="search-form">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={
-              searchType === 'semantic' 
-                ? "Find similar concepts..."
-                : "Search exact words..."
-            }
-            className="search-input"
-          />
-          <button type="submit" disabled={loading || !query.trim()}>
-            {loading ? 'Searching...' : 'Search'}
-          </button>
-        </form>
-      </div>
-
-      <SearchResults 
-        results={results} 
-        query={query}
-        searchType={searchType}
-      />
-    </div>
-  );
-}
-
-function SearchResults({ results, query, searchType }) {
-  if (results.length === 0) {
-    return (
-      <div className="search-empty">
-        No results found for "{query}"
-      </div>
-    );
+**Response with text search fallback:**
+```json
+[
+  {
+    "id": "cm4vector789",
+    "noteId": "cm4note789",
+    "chunkId": "cm4note789_chunk_0", 
+    "chunkContent": "Artificial intelligence (AI) is transforming how we approach machine learning problems...",
+    "chunkIndex": 0,
+    "heading": null,
+    "embedding": [],
+    "ownerId": "cm4user123", 
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "noteTitle": "AI Overview",
+    "similarity": 0.95
   }
-
-  return (
-    <div className="search-results">
-      <div className="results-header">
-        <h3>
-          {searchType === 'semantic' ? 'Similar Concepts' : 'Text Matches'} 
-          ({results.length})
-        </h3>
-      </div>
-      
-      {results.map(result => (
-        <SearchResultCard 
-          key={result.id} 
-          result={result}
-          query={query}
-          showSimilarity={searchType === 'semantic'}
-        />
-      ))}
-    </div>
-  );
-}
+]
 ```
 
-## 🔍 Advanced Features
+## 🔄 Service Integration
 
-### Context Optimization for AI Chat
-The vector system optimizes context for AI conversations:
+### NotesService Integration
+- **Automatic Processing**: `processNoteForRAG()` called on note create/update
+- **Background Execution**: Processing happens asynchronously with error handling
+- **Content Change Detection**: Re-processing triggered for significant content changes
+- **Cleanup**: Vectors removed on note deletion via `deleteByNote()`
 
-```typescript
-// Example context building
-const buildChatContext = async (query: string, userId: string) => {
-  const relevantChunks = await semanticSearch(query, userId, 10);
-  
-  let context = '';
-  const citations = [];
-  let tokenCount = 0;
-  const maxTokens = 3000;
+### ChatService Integration
+- **Context Building**: `buildChatContext()` provides relevant note content
+- **Token Management**: Respects model context limits for optimal AI responses
+- **Citation Support**: Returns source attribution for transparency
+- **Relevance Filtering**: Only includes chunks above 0.1 similarity threshold
 
-  for (const chunk of relevantChunks) {
-    const chunkTokens = estimateTokens(chunk.chunkContent);
-    
-    if (tokenCount + chunkTokens > maxTokens) break;
-    
-    context += `--- ${chunk.noteTitle}${chunk.heading ? ` > ${chunk.heading}` : ''} ---\n`;
-    context += chunk.chunkContent + '\n\n';
-    
-    citations.push({
-      title: chunk.noteTitle,
-      heading: chunk.heading
-    });
-    
-    tokenCount += chunkTokens + 20; // +20 for separator tokens
-  }
-  
-  return { context, citations };
-};
-```
+### Configuration Dependencies
+- **OpenAI API Key**: Required for embedding generation
+- **Database**: PostgreSQL with vector storage support
+- **Environment**: Configurable timeouts and retry limits
 
-### Embedding Model Configuration
-Supports multiple embedding providers:
+## 📊 Performance Characteristics
 
-```typescript
-const embeddingConfig = {
-  openai: {
-    model: 'text-embedding-3-small',
-    dimensions: 1536,
-    maxTokens: 8191
-  },
-  fallback: {
-    useTextSearch: true,
-    keywordWeighting: true,
-    semanticApproximation: false
-  }
-};
-```
+### Search Performance
+- **Text Search**: Fast PostgreSQL queries with indexed text matching
+- **Vector Search**: When available, provides semantic understanding
+- **Result Ranking**: Combined similarity scores with recency weighting
+- **Memory Efficiency**: Streaming processing for large result sets
 
-### Performance Optimizations
+### Scalability Considerations
+- **Connection Pooling**: Leverages Prisma connection management
+- **Batch Processing**: Efficient embedding generation for multiple chunks
+- **Graceful Degradation**: Service remains functional without OpenAI
+- **Token Optimization**: Smart context building respects model limits
 
-**Chunking Strategy:**
-- Smart boundary detection (sentence/paragraph breaks)
-- Heading context preservation
-- Overlap optimization for continuity
-- Minimum chunk size filtering (>20 characters)
-
-**Search Performance:**
-- Vector similarity computed using cosine distance
-- Result ranking combines multiple signals
-- Caching of frequent queries
-- Background pre-processing of new content
-
-## ❌ Common Issues & Solutions
-
-### Issue: "No embeddings available"
-**Cause**: OpenAI API key not configured or invalid
-**Solution**: 
-1. Check `OPENAI_API_KEY` in environment
-2. Verify API key format (starts with `sk-`)
-3. System automatically falls back to text search
-
-### Issue: Poor search relevance
-**Cause**: Insufficient content for embeddings
-**Solution**:
-1. Ensure notes have substantial content (>100 words)
-2. Use descriptive headings and structure
-3. Consider manual keyword tagging
-
-### Issue: Slow search response
-**Cause**: Large number of chunks to process
-**Solution**:
-1. Implement result caching
-2. Use pagination for large result sets
-3. Consider background pre-computation
-
-## 🔄 Integration with Other Systems
-
-### Chat System Integration
-```typescript
-// Chat service using vector context
-export class ChatService {
-  async generateResponse(query: string, userId: string) {
-    // Get relevant context from vectors
-    const { context, citations } = await this.vectorsService.buildChatContext(
-      query, userId, 3000
-    );
-    
-    // Build AI prompt with context
-    const systemPrompt = this.buildSystemPrompt();
-    const fullPrompt = context.trim()
-      ? `${systemPrompt}\n\nContext: ${context}\n\nQuery: ${query}`
-      : `${systemPrompt}\n\nQuery: ${query}`;
-    
-    // Stream AI response
-    return this.streamAIResponse(fullPrompt, citations);
-  }
-}
-```
-
-### Notes Processing Pipeline
-```typescript
-// Automatic processing when notes change
-export class NotesService {
-  async updateNote(id: string, updates: UpdateNoteDto, userId: string) {
-    const updatedNote = await this.prisma.note.update({
-      where: { id },
-      data: updates
-    });
-    
-    // Reprocess for vectors if content changed
-    if (updates.content) {
-      await this.vectorsService.processNoteForRAG(id, userId);
-    }
-    
-    return updatedNote;
-  }
-}
-```
+### Error Recovery
+- **Provider Fallbacks**: Automatic switching to text search on embedding failures
+- **Retry Logic**: Limited retries prevent timeout cascades
+- **Silent Failures**: Background processing errors don't disrupt user operations
+- **Status Logging**: Comprehensive console output for system monitoring
 
 ---
 

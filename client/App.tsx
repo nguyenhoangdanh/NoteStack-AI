@@ -3,17 +3,19 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "next-themes";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { Toaster } from "./components/ui/toaster";
+import { AuthProvider } from "./contexts/AuthContext";
+import { AuthGuard } from "./components/auth/AuthGuard";
+import { Toaster } from "react-hot-toast";
+
+// Page imports
 import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ProfilePage from "./pages/ProfilePage";
 import Notes from "./pages/Notes";
 import NotesDemo from "./pages/NotesDemo";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import { Loader2 } from "lucide-react";
-import Signup from "./pages/Signup";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -26,50 +28,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Protected Route wrapper
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isLoading, isAuthenticated } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-}
-
-// Public Route wrapper (redirects to notes if authenticated)
-function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isLoading, isAuthenticated } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/notes" replace />;
-  }
-
-  return <>{children}</>;
-}
-
 function AppContent() {
   return (
     <BrowserRouter>
@@ -77,55 +35,41 @@ function AppContent() {
         {/* Public routes */}
         <Route path="/" element={<Index />} />
         <Route path="/demo" element={<NotesDemo />} />
-        
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            <PublicRoute>
-              <Signup />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          }
-        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/signup" element={<RegisterPage />} />
 
         {/* Protected routes */}
         <Route
           path="/notes"
           element={
-            <ProtectedRoute>
+            <AuthGuard>
               <Notes />
-            </ProtectedRoute>
+            </AuthGuard>
           }
         />
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <AuthGuard>
               <Notes />
-            </ProtectedRoute>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <AuthGuard>
+              <ProfilePage />
+            </AuthGuard>
           }
         />
         <Route
           path="/settings"
           element={
-            <ProtectedRoute>
+            <AuthGuard>
               <Settings />
-            </ProtectedRoute>
+            </AuthGuard>
           }
         />
 
@@ -133,8 +77,18 @@ function AppContent() {
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
-      <Toaster />
-      {/* {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />} */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: 'var(--background)',
+            color: 'var(--foreground)',
+            border: '1px solid var(--border)',
+          },
+        }}
+      />
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
     </BrowserRouter>
   );
 }
