@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, FileTemplate, Star, Copy, Edit, Trash2, Search, Filter, Globe, Lock } from 'lucide-react';
+import { Plus, File, Star, Copy, Edit, Trash2, Search, Filter, Globe, Lock } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -232,7 +232,7 @@ export default function TemplatesPage() {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gradient flex items-center gap-3">
-              <FileTemplate className="h-8 w-8" />
+              <File className="h-8 w-8" />
               Templates
             </h1>
             <p className="text-muted-foreground">
@@ -282,7 +282,7 @@ export default function TemplatesPage() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
-                  <FileTemplate className="h-6 w-6 text-primary" />
+                  <File className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{templates.length}</p>
@@ -329,7 +329,7 @@ export default function TemplatesPage() {
         {filteredTemplates.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center h-48">
-              <FileTemplate className="h-12 w-12 text-muted-foreground mb-4" />
+              <File className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No templates found</h3>
               <p className="text-muted-foreground text-center mb-4">
                 {searchQuery ? 'Try adjusting your search criteria' : 'Create your first template to get started'}
