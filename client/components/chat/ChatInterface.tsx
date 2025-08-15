@@ -59,7 +59,7 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { chatComplete, isPending } = useChat();
+  const { completeChatAsync, isCompletingChat } = useChat();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -73,7 +73,7 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
 
   const handleSend = async (messageText?: string) => {
     const text = messageText || input.trim();
-    if (!text || isPending) return;
+    if (!text || isCompletingChat) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -93,7 +93,7 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
         maxTokens: 2000,
       };
 
-      const response = await chatComplete.mutateAsync(request);
+      const response = await completeChatAsync(request);
 
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -244,15 +244,15 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               className="min-h-[60px] max-h-[120px] resize-none"
-              disabled={isPending}
+              disabled={isCompletingChat}
             />
           </div>
           <Button
             onClick={() => handleSend()}
-            disabled={!input.trim() || isPending}
+            disabled={!input.trim() || isCompletingChat}
             className="btn-gradient self-end h-[60px] px-6"
           >
-            {isPending ? (
+            {isCompletingChat ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Send className="h-4 w-4" />

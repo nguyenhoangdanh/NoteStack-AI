@@ -143,7 +143,7 @@ export function ChatMessage({
                           className="h-6 w-6 p-0"
                           onClick={() => {
                             // TODO: Navigate to source
-                            toast.info("Source navigation coming soon");
+                            toast("Source navigation coming soon");
                           }}
                         >
                           <ExternalLink className="h-3 w-3" />

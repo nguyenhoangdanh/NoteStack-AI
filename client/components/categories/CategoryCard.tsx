@@ -39,6 +39,8 @@ export function CategoryCard({
     onView?.(category);
   };
 
+  console.log("Rendering CategoryCard for:", category);
+
   const noteCount = category._count?.noteCategories || 0;
 
   return (
