@@ -1,245 +1,126 @@
-import React, { useState } from "react";
-import { Plus, Tag, Edit, Trash2, Sparkles } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import { ArrowLeft, Tag, Bot, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useCategories, useDeleteCategory } from "@/hooks/useCategories";
-import { toast } from "react-hot-toast";
-import type { Category } from "@/types";
-
-// Mock categories data
-const mockCategories = [
-  {
-    id: "1",
-    name: "Development",
-    description: "Programming and software development topics",
-    color: "#3B82F6",
-    isAuto: false,
-    createdAt: "2024-01-15T10:30:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: "2",
-    name: "Research",
-    description: "Research findings and academic papers",
-    color: "#10B981",
-    isAuto: false,
-    createdAt: "2024-01-14T09:15:00Z",
-    updatedAt: "2024-01-14T09:15:00Z",
-  },
-  {
-    id: "3",
-    name: "AI/ML",
-    description: "Artificial Intelligence and Machine Learning content",
-    color: "#8B5CF6",
-    isAuto: true,
-    createdAt: "2024-01-13T11:20:00Z",
-    updatedAt: "2024-01-13T11:20:00Z",
-  },
-];
+import { CategoriesList } from "@/components/categories/CategoriesList";
 
 export default function CategoriesPage() {
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null,
-  );
-
-  const { data: categories, isLoading, error } = useCategories();
-  const deleteCategory = useDeleteCategory();
-
-  // Use actual data if available, otherwise fallback to mock data
-  const finalCategories = categories || mockCategories;
-
-  const handleDeleteCategory = async (categoryId: string) => {
-    if (window.confirm("Are you sure you want to delete this category?")) {
-      try {
-        await deleteCategory.mutateAsync(categoryId);
-        toast.success("Category deleted successfully");
-      } catch (error) {
-        toast.error("Failed to delete category");
-      }
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-16 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <Card>
-          <CardContent className="flex items-center justify-center h-32">
-            <p className="text-muted-foreground">
-              Failed to load categories. Please try again.
-            </p>
-          </CardContent>
-        </Card>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex items-center gap-4 mb-8">
+          <Link to="/dashboard">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
+        {/* Page Title */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Tag className="h-6 w-6 text-primary" />
+          </div>
           <div>
             <h1 className="text-3xl font-bold text-gradient">Categories</h1>
             <p className="text-muted-foreground">
-              Organize your notes with categories. AI-powered
-              auto-categorization helps keep things organized.
+              Organize and auto-categorize your notes with AI-powered insights
             </p>
           </div>
-          <Button className="btn-gradient">
-            <Plus className="h-4 w-4 mr-2" />
-            New Category
-          </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card className="card-gradient">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Tag className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{finalCategories.length}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Total Categories
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-gradient">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-success/10 rounded-lg">
-                  <Sparkles className="h-6 w-6 text-success" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {finalCategories.filter((c) => c.isAuto).length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">AI Generated</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-gradient">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-warning/10 rounded-lg">
-                  <Edit className="h-6 w-6 text-warning" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {finalCategories.filter((c) => !c.isAuto).length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Custom</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Categories Grid */}
-        {finalCategories.length === 0 ? (
+        {/* Overview Cards */}
+        <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
-            <CardContent className="flex flex-col items-center justify-center h-48">
-              <Tag className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No categories found</h3>
-              <p className="text-muted-foreground text-center mb-4">
-                Create your first category to start organizing your notes
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
+              <Tag className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">15</div>
+              <p className="text-xs text-muted-foreground">
+                +3 from last month
               </p>
-              <Button className="btn-gradient">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Category
-              </Button>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {finalCategories.map((category) => (
-              <Card
-                key={category.id}
-                className="card-gradient transition-all duration-200 hover:shadow-lg"
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: category.color }}
-                      />
-                      <CardTitle className="text-lg">{category.name}</CardTitle>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {category.isAuto && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          AI
-                        </Badge>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleDeleteCategory(category.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {category.description || "No description available"}
-                  </p>
-                  <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>
-                      Created{" "}
-                      {new Date(category.createdAt).toLocaleDateString()}
-                    </span>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Auto-Generated</CardTitle>
+              <Bot className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">8</div>
+              <div className="flex items-center gap-1">
+                <Badge variant="secondary" className="text-xs">AI Powered</Badge>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Categorized Notes</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">127</div>
+              <p className="text-xs text-muted-foreground">
+                85% of all notes
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Top Category</CardTitle>
+              <Tag className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">Work</div>
+              <p className="text-xs text-muted-foreground">
+                42 notes assigned
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* AI Features Info */}
+        <Card className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Bot className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold mb-2">AI-Powered Auto-Categorization</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Our intelligent system analyzes your notes' content and automatically suggests relevant categories based on keywords, context, and patterns.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">Keyword Analysis</Badge>
+                  <Badge variant="secondary">Context Understanding</Badge>
+                  <Badge variant="secondary">Pattern Recognition</Badge>
+                  <Badge variant="secondary">Smart Suggestions</Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Categories List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Manage Categories</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CategoriesList />
+          </CardContent>
+        </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
