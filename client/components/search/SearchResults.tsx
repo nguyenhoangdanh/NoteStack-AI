@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, Calendar, Tag, Folder, ExternalLink, Highlight } from "lucide-react";
+import { FileText, Calendar, Tag, Folder, ExternalLink, Lightbulb } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
