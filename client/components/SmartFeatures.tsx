@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Note } from '../types/api.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -14,6 +13,7 @@ import {
   SearchIcon,
   CopyIcon
 } from 'lucide-react';
+import { Note } from '../types';
 
 interface SmartFeaturesProps {
   notes: Note[];

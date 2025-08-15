@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Workspace } from '../types/api.types';
-import { apiClient } from '../lib/api';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -16,6 +14,8 @@ import {
     TrendingUpIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Workspace } from '../types';
+import { useCreateNote, useWorkspaces, useCreateWorkspace } from '../hooks';
 
 interface QuickActionsProps {
     selectedWorkspace: Workspace | null;
@@ -34,6 +34,10 @@ export function QuickActions({
     const [newWorkspaceName, setNewWorkspaceName] = useState('');
     const [creating, setCreating] = useState(false);
 
+    const { mutateAsync: createNote } = useCreateNote();
+    const { data: workspacesData } = useWorkspaces();
+    const { mutateAsync: createWorkspace } = useCreateWorkspace();
+
     const handleCreateWorkspace = async () => {
         if (!newWorkspaceName.trim()) {
             toast.error('Please enter a workspace name');
@@ -42,7 +46,7 @@ export function QuickActions({
 
         setCreating(true);
         try {
-            const newWorkspace = await apiClient.workspaces.create({ name: newWorkspaceName.trim() });
+            const newWorkspace = await createWorkspace({ name: newWorkspaceName.trim() });
             onWorkspaceChange(newWorkspace);
             setIsCreateWorkspaceOpen(false);
             setNewWorkspaceName('');
@@ -53,6 +57,21 @@ export function QuickActions({
             toast.error('Failed to create workspace');
         } finally {
             setCreating(false);
+        }
+    };
+
+    const handleQuickNote = async () => {
+        if (workspacesData && workspacesData.length > 0) {
+            try {
+                await createNote({
+                    title: 'Quick Note',
+                    content: '',
+                    tags: [],
+                    workspaceId: workspacesData[0].id
+                });
+            } catch (error) {
+                console.error('Error creating quick note:', error);
+            }
         }
     };
 
@@ -138,7 +157,12 @@ export function QuickActions({
                     <CardTitle className="text-base">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={handleQuickNote}
+                    >
                         <PlusIcon className="h-4 w-4 mr-2" />
                         New Note
                     </Button>

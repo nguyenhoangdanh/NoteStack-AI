@@ -19,11 +19,14 @@ import {
   Loader2,
 } from "lucide-react";
 import {
-  useCreateNote,
   useNotes,
+  useCreateNote,
+  useDeleteNote,
+  useUpdateNote,
+  useWorkspaces,
   useDefaultWorkspace,
   useProcessNoteForRAG,
-} from "../hooks/useApi";
+} from "../hooks";
 import {
   importMultipleFiles,
   exportAllNotes,
@@ -46,7 +49,7 @@ export default function ImportExport({ className }: ImportExportProps) {
   const [importProgress, setImportProgress] = useState(0);
 
   const { data: defaultWorkspace } = useDefaultWorkspace();
-  const { data: notes } = useNotes(defaultWorkspace?.id);
+  const { data: notes } = useNotes(defaultWorkspace?.id ? { workspaceId: defaultWorkspace.id } : undefined);
   const createNote = useCreateNote();
   const processNoteForRAG = useProcessNoteForRAG();
 

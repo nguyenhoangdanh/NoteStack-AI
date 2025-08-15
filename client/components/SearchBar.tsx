@@ -4,10 +4,10 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { useSearchNotes, useSemanticSearch } from "../hooks/useApi";
 import { useUIStore } from "../lib/store";
 import { useChatStore } from "../lib/store";
 import { cn } from "../lib/utils";
+import { useSearchNotes, useSemanticSearch } from "@/hooks";
 
 interface SearchBarProps {
   className?: string;
