@@ -60,9 +60,9 @@ interface CategoriesListProps {
   includeAuto?: boolean;
 }
 
-export function CategoriesList({ 
+export function CategoriesList({
   showCreateButton = true,
-  includeAuto = true 
+  includeAuto = true,
 }: CategoriesListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAutoOnly, setShowAutoOnly] = useState(false);
@@ -75,12 +75,15 @@ export function CategoriesList({
   const finalCategories = categories || mockCategories;
 
   const filteredCategories = finalCategories.filter((category) => {
-    const matchesSearch = category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       category.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      category.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+      category.keywords.some((keyword) =>
+        keyword.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+
     const matchesAutoFilter = !showAutoOnly || category.isAuto;
-    
+
     return matchesSearch && matchesAutoFilter;
   });
 
@@ -116,8 +119,8 @@ export function CategoriesList({
     setEditingCategory(null);
   };
 
-  const autoCategories = finalCategories.filter(c => c.isAuto);
-  const manualCategories = finalCategories.filter(c => !c.isAuto);
+  const autoCategories = finalCategories.filter((c) => c.isAuto);
+  const manualCategories = finalCategories.filter((c) => !c.isAuto);
 
   if (isLoading) {
     return (
@@ -180,7 +183,7 @@ export function CategoriesList({
               Auto-generated only
             </Label>
           </div>
-          
+
           <Button
             variant="outline"
             onClick={handleAutoCategorize}
@@ -190,7 +193,7 @@ export function CategoriesList({
             <Wand2 className="h-4 w-4 mr-2" />
             Auto-categorize
           </Button>
-          
+
           {showCreateButton && (
             <Button onClick={handleCreateCategory} className="btn-gradient">
               <Plus className="h-4 w-4 mr-2" />
@@ -229,8 +232,8 @@ export function CategoriesList({
                   <Plus className="h-4 w-4 mr-2" />
                   Create Category
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleAutoCategorize}
                   disabled={autoCategorize.isPending}
                 >

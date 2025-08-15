@@ -30,7 +30,10 @@ import type { Template } from "@/types";
 
 const templateFormSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name too long"),
-  description: z.string().min(1, "Description is required").max(300, "Description too long"),
+  description: z
+    .string()
+    .min(1, "Description is required")
+    .max(300, "Description too long"),
   content: z.string().min(1, "Content is required"),
   tags: z.string(),
   isPublic: z.boolean(),
@@ -51,7 +54,7 @@ export function TemplateEditor({
 }: TemplateEditorProps) {
   const createTemplate = useCreateTemplate();
   const updateTemplate = useUpdateTemplate();
-  
+
   const isEditing = !!template;
   const isLoading = createTemplate.isPending || updateTemplate.isPending;
 
@@ -132,9 +135,15 @@ export function TemplateEditor({
 
   const currentTags = parseTags(form.watch("tags") || "");
   const contentValue = form.watch("content") || "";
-  
+
   // Extract variables from content (simple pattern matching for {{variable}})
-  const variables = [...new Set(contentValue.match(/\{\{(\w+)\}\}/g)?.map(match => match.slice(2, -2)) || [])];
+  const variables = [
+    ...new Set(
+      contentValue
+        .match(/\{\{(\w+)\}\}/g)
+        ?.map((match) => match.slice(2, -2)) || [],
+    ),
+  ];
 
   const handlePreview = () => {
     // TODO: Implement preview functionality
@@ -182,7 +191,10 @@ export function TemplateEditor({
                     <FormItem>
                       <FormLabel>Template Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter template name..." {...field} />
+                        <Input
+                          placeholder="Enter template name..."
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -256,10 +268,9 @@ export function TemplateEditor({
                           )}
                         </FormLabel>
                         <FormDescription>
-                          {field.value 
+                          {field.value
                             ? "Anyone can view and use this template"
-                            : "Only you can view and use this template"
-                          }
+                            : "Only you can view and use this template"}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -275,14 +286,20 @@ export function TemplateEditor({
                 {/* Variables Info */}
                 {variables.length > 0 && (
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Detected Variables</Label>
+                    <Label className="text-sm font-medium">
+                      Detected Variables
+                    </Label>
                     <div className="p-3 bg-muted rounded-lg">
                       <p className="text-xs text-muted-foreground mb-2">
                         Variables will be replaced when template is used:
                       </p>
                       <div className="flex flex-wrap gap-1">
                         {variables.map((variable, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             {`{{${variable}}}`}
                           </Badge>
                         ))}
@@ -314,7 +331,8 @@ Examples:
                         />
                       </FormControl>
                       <FormDescription>
-                        Use double curly braces to create variables: {`{{variableName}}`}
+                        Use double curly braces to create variables:{" "}
+                        {`{{variableName}}`}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

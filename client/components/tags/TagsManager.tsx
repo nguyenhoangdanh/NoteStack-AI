@@ -23,7 +23,7 @@ const mockTags: Tag[] = [
   {
     id: "2",
     name: "react",
-    color: "#61DAFB", 
+    color: "#61DAFB",
     description: "React framework",
     ownerId: "user-1",
     createdAt: "2024-01-14T09:15:00Z",
@@ -35,7 +35,7 @@ const mockTags: Tag[] = [
     name: "productivity",
     color: "#10B981",
     description: "Productivity tips and methods",
-    ownerId: "user-1", 
+    ownerId: "user-1",
     createdAt: "2024-01-13T11:20:00Z",
     updatedAt: "2024-01-13T15:30:00Z",
     _count: { noteTags: 12 },
@@ -47,23 +47,26 @@ interface TagsManagerProps {
   limit?: number;
 }
 
-export function TagsManager({ showCreateForm = true, limit }: TagsManagerProps) {
+export function TagsManager({
+  showCreateForm = true,
+  limit,
+}: TagsManagerProps) {
   const [newTagName, setNewTagName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  
+
   const { data: tags, isLoading, error } = useTags();
   const createTag = useCreateTag();
-  
+
   const finalTags = tags || mockTags;
   const displayTags = limit ? finalTags.slice(0, limit) : finalTags;
 
   const handleCreateTag = async () => {
     if (!newTagName.trim()) return;
-    
+
     try {
       await createTag.mutateAsync({
         name: newTagName.trim(),
-        color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+        color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
       });
       setNewTagName("");
       setIsCreating(false);
@@ -107,7 +110,7 @@ export function TagsManager({ showCreateForm = true, limit }: TagsManagerProps) 
           <span className="font-medium">Tags</span>
           <Badge variant="secondary">{finalTags.length}</Badge>
         </div>
-        
+
         {showCreateForm && (
           <Button
             variant="outline"
@@ -129,17 +132,17 @@ export function TagsManager({ showCreateForm = true, limit }: TagsManagerProps) 
                 placeholder="Tag name..."
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateTag()}
+                onKeyDown={(e) => e.key === "Enter" && handleCreateTag()}
                 className="flex-1"
               />
-              <Button 
+              <Button
                 onClick={handleCreateTag}
                 disabled={!newTagName.trim() || createTag.isPending}
                 size="sm"
               >
                 Create
               </Button>
-              <Button 
+              <Button
                 variant="ghost"
                 onClick={() => setIsCreating(false)}
                 size="sm"
@@ -167,17 +170,20 @@ export function TagsManager({ showCreateForm = true, limit }: TagsManagerProps) 
             </div>
             <div className="flex flex-wrap gap-2">
               {displayTags
-                .sort((a, b) => (b._count?.noteTags || 0) - (a._count?.noteTags || 0))
+                .sort(
+                  (a, b) =>
+                    (b._count?.noteTags || 0) - (a._count?.noteTags || 0),
+                )
                 .slice(0, 10)
                 .map((tag) => (
                   <div key={tag.id} className="group relative">
                     <Badge
                       variant="secondary"
                       className="pr-8 hover:pr-2 transition-all duration-200"
-                      style={{ 
+                      style={{
                         backgroundColor: `${tag.color}20`,
                         color: tag.color,
-                        borderColor: `${tag.color}40`
+                        borderColor: `${tag.color}40`,
                       }}
                     >
                       <Hash className="h-3 w-3 mr-1" />
@@ -211,7 +217,7 @@ export function TagsManager({ showCreateForm = true, limit }: TagsManagerProps) 
                   <Card key={tag.id} className="p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div 
+                        <div
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: tag.color }}
                         />

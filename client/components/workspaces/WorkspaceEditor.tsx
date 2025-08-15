@@ -41,7 +41,7 @@ export function WorkspaceEditor({
   onClose,
 }: WorkspaceEditorProps) {
   const createWorkspace = useCreateWorkspace();
-  
+
   const isEditing = !!workspace;
   const isLoading = createWorkspace.isPending;
 

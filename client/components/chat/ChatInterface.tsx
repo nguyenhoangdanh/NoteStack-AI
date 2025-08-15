@@ -33,9 +33,17 @@ const suggestedQueries = [
 ];
 
 const models = [
-  { value: "gpt-4o", label: "GPT-4 Optimized", description: "Best for complex reasoning" },
+  {
+    value: "gpt-4o",
+    label: "GPT-4 Optimized",
+    description: "Best for complex reasoning",
+  },
   { value: "gpt-4", label: "GPT-4", description: "High quality responses" },
-  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", description: "Fast and efficient" },
+  {
+    value: "gpt-3.5-turbo",
+    label: "GPT-3.5 Turbo",
+    description: "Fast and efficient",
+  },
 ];
 
 interface ChatInterfaceProps {
@@ -74,7 +82,7 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsStreaming(true);
 
@@ -95,7 +103,7 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
         timestamp: new Date().toISOString(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       toast.error("Failed to get AI response. Please try again.");
       console.error("Chat error:", error);
@@ -171,15 +179,20 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
               <Sparkles className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Start a conversation
+              </h3>
               <p className="text-muted-foreground mb-6">
-                Ask me anything about your notes, get summaries, or explore connections between your ideas.
+                Ask me anything about your notes, get summaries, or explore
+                connections between your ideas.
               </p>
             </div>
-            
+
             {/* Suggested Queries */}
             <div className="space-y-3">
-              <p className="text-sm font-medium text-muted-foreground">Try asking:</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Try asking:
+              </p>
               <div className="space-y-2 max-w-md">
                 {suggestedQueries.map((query, index) => (
                   <Button
@@ -206,7 +219,7 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
                 timestamp={message.timestamp}
               />
             ))}
-            
+
             {isStreaming && (
               <ChatMessage
                 role="assistant"
@@ -214,7 +227,7 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
                 isStreaming={true}
               />
             )}
-            
+
             <div ref={messagesEndRef} />
           </>
         )}
@@ -246,7 +259,7 @@ export function ChatInterface({ initialMessage, context }: ChatInterfaceProps) {
             )}
           </Button>
         </div>
-        
+
         <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
           <span>Press Enter to send, Shift+Enter for new line</span>
           <span>{input.length}/2000</span>

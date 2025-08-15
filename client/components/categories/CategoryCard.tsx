@@ -66,7 +66,7 @@ export function CategoryCard({
                 </Badge>
               )}
               <span className="text-sm text-muted-foreground">
-                {noteCount} {noteCount === 1 ? 'note' : 'notes'}
+                {noteCount} {noteCount === 1 ? "note" : "notes"}
               </span>
             </div>
           </div>
@@ -90,7 +90,7 @@ export function CategoryCard({
             <DropdownMenuItem onClick={handleEdit}>
               Edit Category
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={handleDelete}
               className="text-destructive"
             >
@@ -105,7 +105,7 @@ export function CategoryCard({
             {category.description}
           </p>
         )}
-        
+
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <span>
@@ -118,7 +118,7 @@ export function CategoryCard({
             </Badge>
           )}
         </div>
-        
+
         {category.keywords.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">

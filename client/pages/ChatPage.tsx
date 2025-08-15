@@ -1,5 +1,11 @@
 import React from "react";
-import { ArrowLeft, Bot, Sparkles, MessageSquare, TrendingUp } from "lucide-react";
+import {
+  ArrowLeft,
+  Bot,
+  Sparkles,
+  MessageSquare,
+  TrendingUp,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +32,9 @@ export default function ChatPage() {
             <Bot className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gradient">AI Chat Assistant</h1>
+            <h1 className="text-3xl font-bold text-gradient">
+              AI Chat Assistant
+            </h1>
             <p className="text-muted-foreground">
               Get intelligent insights and assistance with your notes using AI
             </p>
@@ -47,7 +55,7 @@ export default function ChatPage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">AI Model</CardTitle>
@@ -56,14 +64,18 @@ export default function ChatPage() {
             <CardContent>
               <div className="text-2xl font-bold">GPT-4</div>
               <div className="flex items-center gap-1">
-                <Badge variant="secondary" className="text-xs">Latest</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  Latest
+                </Badge>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Response Time</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Response Time
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -73,10 +85,12 @@ export default function ChatPage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Notes Analyzed</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Notes Analyzed
+              </CardTitle>
               <Sparkles className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -96,9 +110,13 @@ export default function ChatPage() {
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold mb-2">Intelligent Note Assistant</h3>
+                <h3 className="font-semibold mb-2">
+                  Intelligent Note Assistant
+                </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Our AI assistant can help you summarize notes, find connections between ideas, generate insights, and answer questions about your content using advanced language models.
+                  Our AI assistant can help you summarize notes, find
+                  connections between ideas, generate insights, and answer
+                  questions about your content using advanced language models.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary">Note Summarization</Badge>
@@ -130,13 +148,15 @@ export default function ChatPage() {
               <div className="space-y-2">
                 <h4 className="font-medium">Be Specific</h4>
                 <p className="text-sm text-muted-foreground">
-                  Ask specific questions about your notes for more targeted responses.
+                  Ask specific questions about your notes for more targeted
+                  responses.
                 </p>
               </div>
               <div className="space-y-2">
                 <h4 className="font-medium">Use Context</h4>
                 <p className="text-sm text-muted-foreground">
-                  Reference specific notes, tags, or timeframes for better understanding.
+                  Reference specific notes, tags, or timeframes for better
+                  understanding.
                 </p>
               </div>
               <div className="space-y-2">

@@ -23,7 +23,9 @@ export default function CollaborationPage() {
             <Users className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gradient">Collaboration & Sharing</h1>
+            <h1 className="text-3xl font-bold text-gradient">
+              Collaboration & Sharing
+            </h1>
             <p className="text-muted-foreground">
               Share your notes and collaborate with others in real-time
             </p>
@@ -33,7 +35,9 @@ export default function CollaborationPage() {
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Shared Notes</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Shared Notes
+              </CardTitle>
               <Share className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -41,10 +45,12 @@ export default function CollaborationPage() {
               <p className="text-xs text-muted-foreground">+7 this week</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Collaborators</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Collaborators
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -52,7 +58,7 @@ export default function CollaborationPage() {
               <p className="text-xs text-muted-foreground">Active this month</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Share Links</CardTitle>
@@ -60,10 +66,12 @@ export default function CollaborationPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">18</div>
-              <p className="text-xs text-muted-foreground">Public links created</p>
+              <p className="text-xs text-muted-foreground">
+                Public links created
+              </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Views</CardTitle>
@@ -85,18 +93,20 @@ export default function CollaborationPage() {
               <div className="space-y-4">
                 <h3 className="font-semibold">Real-time Collaboration</h3>
                 <p className="text-sm text-muted-foreground">
-                  Work together on notes with live editing, cursor tracking, and instant updates.
+                  Work together on notes with live editing, cursor tracking, and
+                  instant updates.
                 </p>
                 <div className="flex gap-2">
                   <Badge variant="secondary">Live Editing</Badge>
                   <Badge variant="secondary">Cursor Tracking</Badge>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <h3 className="font-semibold">Secure Sharing</h3>
                 <p className="text-sm text-muted-foreground">
-                  Share notes with customizable permissions and password protection.
+                  Share notes with customizable permissions and password
+                  protection.
                 </p>
                 <div className="flex gap-2">
                   <Badge variant="secondary">Permission Control</Badge>

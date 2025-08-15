@@ -1,5 +1,12 @@
 import React from "react";
-import { FileText, Calendar, Tag, Folder, ExternalLink, Lightbulb } from "lucide-react";
+import {
+  FileText,
+  Calendar,
+  Tag,
+  Folder,
+  ExternalLink,
+  Lightbulb,
+} from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,13 +22,13 @@ interface SearchResultsProps {
   onResultClick?: (result: SearchResult) => void;
 }
 
-function SearchResultCard({ 
-  result, 
-  query, 
-  onClick 
-}: { 
-  result: SearchResult; 
-  query?: string; 
+function SearchResultCard({
+  result,
+  query,
+  onClick,
+}: {
+  result: SearchResult;
+  query?: string;
   onClick?: (result: SearchResult) => void;
 }) {
   const handleClick = () => {
@@ -30,31 +37,31 @@ function SearchResultCard({
 
   const highlightText = (text: string, highlights: string[]) => {
     if (!highlights.length || !query) return text;
-    
+
     let highlightedText = text;
     highlights.forEach((highlight) => {
-      const regex = new RegExp(`(${highlight})`, 'gi');
+      const regex = new RegExp(`(${highlight})`, "gi");
       highlightedText = highlightedText.replace(
         regex,
-        '<mark class="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">$1</mark>'
+        '<mark class="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">$1</mark>',
       );
     });
-    
+
     return highlightedText;
   };
 
   return (
-    <Card 
+    <Card
       className="cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.01] group"
       onClick={handleClick}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 
+            <h3
               className="text-lg font-semibold truncate group-hover:text-primary transition-colors"
               dangerouslySetInnerHTML={{
-                __html: highlightText(result.title, result.highlights)
+                __html: highlightText(result.title, result.highlights),
               }}
             />
             <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
@@ -92,13 +99,13 @@ function SearchResultCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p 
+        <p
           className="text-sm text-muted-foreground leading-relaxed"
           dangerouslySetInnerHTML={{
-            __html: highlightText(result.excerpt, result.highlights)
+            __html: highlightText(result.excerpt, result.highlights),
           }}
         />
-        
+
         {result.reasons.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -119,7 +126,7 @@ function SearchResultCard({
             </div>
           </div>
         )}
-        
+
         <div className="flex items-center justify-between">
           {result.tags.length > 0 && (
             <div className="flex items-center gap-1">
@@ -138,13 +145,13 @@ function SearchResultCard({
               </div>
             </div>
           )}
-          
+
           {result.categories.length > 0 && (
             <div className="flex gap-1">
               {result.categories.slice(0, 2).map((category, index) => (
-                <Badge 
-                  key={index} 
-                  variant="outline" 
+                <Badge
+                  key={index}
+                  variant="outline"
                   className="text-xs"
                   style={{ borderColor: category.color }}
                 >
@@ -159,12 +166,12 @@ function SearchResultCard({
   );
 }
 
-export function SearchResults({ 
-  results, 
-  isLoading, 
-  query, 
-  total, 
-  onResultClick 
+export function SearchResults({
+  results,
+  isLoading,
+  query,
+  total,
+  onResultClick,
 }: SearchResultsProps) {
   if (isLoading) {
     return (
@@ -200,10 +207,9 @@ export function SearchResults({
           <FileText className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">No results found</h3>
           <p className="text-muted-foreground text-center">
-            {query 
+            {query
               ? `No notes match your search for "${query}"`
-              : "Try entering a search query or adjusting your filters"
-            }
+              : "Try entering a search query or adjusting your filters"}
           </p>
         </CardContent>
       </Card>
@@ -217,7 +223,10 @@ export function SearchResults({
         <p className="text-sm text-muted-foreground">
           {total ? `${total} results` : `${results.length} results`}
           {query && (
-            <span> for <strong>"{query}"</strong></span>
+            <span>
+              {" "}
+              for <strong>"{query}"</strong>
+            </span>
           )}
         </p>
       </div>

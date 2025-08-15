@@ -1,5 +1,12 @@
 import React from "react";
-import { Bot, User, Copy, ThumbsUp, ThumbsDown, ExternalLink } from "lucide-react";
+import {
+  Bot,
+  User,
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  ExternalLink,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,7 +52,12 @@ export function ChatMessage({
   const isUser = role === "user";
 
   return (
-    <div className={cn("flex gap-4 group", isUser ? "justify-end" : "justify-start")}>
+    <div
+      className={cn(
+        "flex gap-4 group",
+        isUser ? "justify-end" : "justify-start",
+      )}
+    >
       {!isUser && (
         <div className="flex-shrink-0">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -53,14 +65,16 @@ export function ChatMessage({
           </div>
         </div>
       )}
-      
+
       <div className={cn("flex-1 max-w-[80%]", isUser && "flex justify-end")}>
-        <Card className={cn(
-          "transition-all duration-200",
-          isUser 
-            ? "bg-primary text-primary-foreground ml-8" 
-            : "bg-muted/50 mr-8"
-        )}>
+        <Card
+          className={cn(
+            "transition-all duration-200",
+            isUser
+              ? "bg-primary text-primary-foreground ml-8"
+              : "bg-muted/50 mr-8",
+          )}
+        >
           <CardContent className="p-4">
             <div className="space-y-3">
               {/* Message Content */}
@@ -71,12 +85,12 @@ export function ChatMessage({
                   <ReactMarkdown
                     components={{
                       code: ({ className, children, ...props }) => {
-                        const match = /language-(\w+)/.exec(className || '');
+                        const match = /language-(\w+)/.exec(className || "");
                         return (
                           <code
                             className={cn(
                               "bg-muted/80 px-1 py-0.5 rounded text-sm font-mono",
-                              className
+                              className,
                             )}
                             {...props}
                           >
@@ -94,7 +108,7 @@ export function ChatMessage({
                     {content}
                   </ReactMarkdown>
                 )}
-                
+
                 {isStreaming && (
                   <span className="inline-block w-2 h-5 bg-current animate-pulse ml-1" />
                 )}
@@ -103,7 +117,9 @@ export function ChatMessage({
               {/* Citations */}
               {citations.length > 0 && (
                 <div className="space-y-2 pt-2 border-t border-border/20">
-                  <p className="text-xs text-muted-foreground font-medium">Sources:</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Sources:
+                  </p>
                   <div className="space-y-1">
                     {citations.map((citation, index) => (
                       <div
@@ -113,7 +129,9 @@ export function ChatMessage({
                         <Badge variant="secondary" className="text-xs">
                           {index + 1}
                         </Badge>
-                        <span className="flex-1 truncate">{citation.title}</span>
+                        <span className="flex-1 truncate">
+                          {citation.title}
+                        </span>
                         {citation.heading && (
                           <span className="text-muted-foreground">
                             • {citation.heading}
@@ -168,7 +186,7 @@ export function ChatMessage({
                     </>
                   )}
                 </div>
-                
+
                 {timestamp && (
                   <span className="text-xs text-muted-foreground">
                     {new Date(timestamp).toLocaleTimeString()}

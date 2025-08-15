@@ -5,17 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAdvancedSearch, useSearchHistory, usePopularQueries, useSavedSearches } from "@/hooks/useSearch";
+import {
+  useAdvancedSearch,
+  useSearchHistory,
+  usePopularQueries,
+  useSavedSearches,
+} from "@/hooks/useSearch";
 import { SearchResults } from "@/components/search/SearchResults";
 import { SearchFilters } from "@/components/search/SearchFilters";
-import type { AdvancedSearchRequest, SearchResult, SearchHistory, SavedSearch, PopularQuery } from "@/types";
+import type {
+  AdvancedSearchRequest,
+  SearchResult,
+  SearchHistory,
+  SavedSearch,
+  PopularQuery,
+} from "@/types";
 
 const mockSearchResults: SearchResult[] = [
   {
     id: "1",
     title: "React Performance Optimization",
-    content: "Detailed guide on optimizing React applications for better performance including memoization, lazy loading, and bundle splitting.",
-    excerpt: "This comprehensive guide covers various techniques to optimize React applications, including component memoization with React.memo, lazy loading with React.lazy, and code splitting strategies.",
+    content:
+      "Detailed guide on optimizing React applications for better performance including memoization, lazy loading, and bundle splitting.",
+    excerpt:
+      "This comprehensive guide covers various techniques to optimize React applications, including component memoization with React.memo, lazy loading with React.lazy, and code splitting strategies.",
     score: 0.95,
     highlights: ["React", "performance", "optimization", "memoization"],
     reasons: ["Title match", "Content relevance", "Tag match"],
@@ -30,8 +43,10 @@ const mockSearchResults: SearchResult[] = [
   {
     id: "2",
     title: "TypeScript Best Practices",
-    content: "Essential TypeScript patterns and practices for building scalable applications with better type safety.",
-    excerpt: "Learn about advanced TypeScript patterns including utility types, conditional types, and mapped types for building robust applications.",
+    content:
+      "Essential TypeScript patterns and practices for building scalable applications with better type safety.",
+    excerpt:
+      "Learn about advanced TypeScript patterns including utility types, conditional types, and mapped types for building robust applications.",
     score: 0.87,
     highlights: ["TypeScript", "patterns", "types"],
     reasons: ["Content match", "Category relevance"],
@@ -46,8 +61,22 @@ const mockSearchResults: SearchResult[] = [
 ];
 
 const mockSearchHistory: SearchHistory[] = [
-  { id: "1", userId: "user-1", query: "React hooks", filters: {}, resultCount: 12, searchedAt: "2024-01-15T10:30:00Z" },
-  { id: "2", userId: "user-1", query: "TypeScript interfaces", filters: {}, resultCount: 8, searchedAt: "2024-01-15T09:15:00Z" },
+  {
+    id: "1",
+    userId: "user-1",
+    query: "React hooks",
+    filters: {},
+    resultCount: 12,
+    searchedAt: "2024-01-15T10:30:00Z",
+  },
+  {
+    id: "2",
+    userId: "user-1",
+    query: "TypeScript interfaces",
+    filters: {},
+    resultCount: 8,
+    searchedAt: "2024-01-15T09:15:00Z",
+  },
 ];
 
 const mockPopularQueries: PopularQuery[] = [
@@ -58,28 +87,33 @@ const mockPopularQueries: PopularQuery[] = [
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [query, setQuery] = useState(searchParams.get("q") || "");
   const [filters, setFilters] = useState<AdvancedSearchRequest>({
-    query: searchParams.get('q') || '',
-    sortBy: 'relevance',
-    sortOrder: 'desc',
+    query: searchParams.get("q") || "",
+    sortBy: "relevance",
+    sortOrder: "desc",
     limit: 20,
   });
 
-  const { data: searchResults, isPending: isSearching, mutate: performSearch } = useAdvancedSearch();
+  const {
+    data: searchResults,
+    isPending: isSearching,
+    mutate: performSearch,
+  } = useAdvancedSearch();
   const { data: searchHistory } = useSearchHistory();
   const { data: popularQueries } = usePopularQueries();
   const { data: savedSearches } = useSavedSearches();
 
-  const finalResults = searchResults?.results || (query ? mockSearchResults : []);
+  const finalResults =
+    searchResults?.results || (query ? mockSearchResults : []);
   const finalHistory = searchHistory || mockSearchHistory;
   const finalPopular = popularQueries || mockPopularQueries;
 
   useEffect(() => {
-    const urlQuery = searchParams.get('q');
+    const urlQuery = searchParams.get("q");
     if (urlQuery && urlQuery !== query) {
       setQuery(urlQuery);
-      setFilters(prev => ({ ...prev, query: urlQuery }));
+      setFilters((prev) => ({ ...prev, query: urlQuery }));
       performSearch({ ...filters, query: urlQuery });
     }
   }, [searchParams]);
@@ -104,8 +138,8 @@ export default function SearchPage() {
   const handleClearFilters = () => {
     const clearedFilters: AdvancedSearchRequest = {
       query: filters.query,
-      sortBy: 'relevance',
-      sortOrder: 'desc',
+      sortBy: "relevance",
+      sortOrder: "desc",
       limit: 20,
     };
     setFilters(clearedFilters);
@@ -148,9 +182,12 @@ export default function SearchPage() {
             <Search className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gradient">Advanced Search</h1>
+            <h1 className="text-3xl font-bold text-gradient">
+              Advanced Search
+            </h1>
             <p className="text-muted-foreground">
-              Find exactly what you're looking for with powerful search and filters
+              Find exactly what you're looking for with powerful search and
+              filters
             </p>
           </div>
         </div>
@@ -166,17 +203,17 @@ export default function SearchPage() {
                     placeholder="Search your notes..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     className="pl-10 h-12 text-lg"
                   />
                 </div>
               </div>
-              <Button 
-                onClick={handleSearch} 
+              <Button
+                onClick={handleSearch}
                 className="btn-gradient h-12 px-8"
                 disabled={isSearching}
               >
-                {isSearching ? 'Searching...' : 'Search'}
+                {isSearching ? "Searching..." : "Search"}
               </Button>
             </div>
           </CardContent>
@@ -217,7 +254,8 @@ export default function SearchPage() {
                         <div>
                           <div className="font-medium">{item.query}</div>
                           <div className="text-xs text-muted-foreground">
-                            {item.resultCount} results • {new Date(item.searchedAt).toLocaleDateString()}
+                            {item.resultCount} results •{" "}
+                            {new Date(item.searchedAt).toLocaleDateString()}
                           </div>
                         </div>
                       </Button>

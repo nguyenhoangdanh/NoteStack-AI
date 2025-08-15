@@ -29,7 +29,8 @@ export default function TemplatesPage() {
           <div>
             <h1 className="text-3xl font-bold text-gradient">Templates</h1>
             <p className="text-muted-foreground">
-              Create reusable templates with variables to speed up your note-taking
+              Create reusable templates with variables to speed up your
+              note-taking
             </p>
           </div>
         </div>
@@ -38,7 +39,9 @@ export default function TemplatesPage() {
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Templates</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Templates
+              </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -48,20 +51,24 @@ export default function TemplatesPage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Public Templates</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Public Templates
+              </CardTitle>
               <Globe className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">12</div>
               <div className="flex items-center gap-1">
-                <Badge variant="secondary" className="text-xs">Shared</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  Shared
+                </Badge>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Most Used</CardTitle>
@@ -69,12 +76,10 @@ export default function TemplatesPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Meeting Notes</div>
-              <p className="text-xs text-muted-foreground">
-                67 times used
-              </p>
+              <p className="text-xs text-muted-foreground">67 times used</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Usage</CardTitle>
@@ -99,7 +104,10 @@ export default function TemplatesPage() {
               <div className="flex-1">
                 <h3 className="font-semibold mb-2">Smart Template Variables</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Create dynamic templates using variables like {`{{title}}`}, {`{{date}}`}, {`{{description}}`}. When you use a template, these will be replaced with input fields for quick customization.
+                  Create dynamic templates using variables like {`{{title}}`},{" "}
+                  {`{{date}}`}, {`{{description}}`}. When you use a template,
+                  these will be replaced with input fields for quick
+                  customization.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary">Dynamic Content</Badge>
@@ -128,20 +136,23 @@ export default function TemplatesPage() {
                   <Globe className="h-4 w-4" />
                   Public
                 </TabsTrigger>
-                <TabsTrigger value="private" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="private"
+                  className="flex items-center gap-2"
+                >
                   <Lock className="h-4 w-4" />
                   Private
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="all" className="mt-6">
                 <TemplatesList />
               </TabsContent>
-              
+
               <TabsContent value="public" className="mt-6">
                 <TemplatesList isPublic={true} />
               </TabsContent>
-              
+
               <TabsContent value="private" className="mt-6">
                 <TemplatesList isPublic={false} />
               </TabsContent>

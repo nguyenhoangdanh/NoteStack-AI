@@ -23,7 +23,8 @@ const mockTemplates: Template[] = [
   {
     id: "1",
     name: "Meeting Notes",
-    description: "Structured template for meeting notes with participants, agenda, and action items",
+    description:
+      "Structured template for meeting notes with participants, agenda, and action items",
     content: `# Meeting Notes - {{title}}
 
 **Date:** {{date}}
@@ -50,7 +51,8 @@ const mockTemplates: Template[] = [
   {
     id: "2",
     name: "Project Planning",
-    description: "Comprehensive project planning template with goals, timeline, and resources",
+    description:
+      "Comprehensive project planning template with goals, timeline, and resources",
     content: `# Project Plan: {{projectName}}
 
 ## Overview
@@ -81,7 +83,8 @@ const mockTemplates: Template[] = [
   {
     id: "3",
     name: "Daily Journal",
-    description: "Personal daily journal template for reflection and goal tracking",
+    description:
+      "Personal daily journal template for reflection and goal tracking",
     content: `# Daily Journal - {{date}}
 
 ## Today's Highlights
@@ -112,9 +115,9 @@ interface TemplatesListProps {
   isPublic?: boolean;
 }
 
-export function TemplatesList({ 
+export function TemplatesList({
   showCreateButton = true,
-  isPublic
+  isPublic,
 }: TemplatesListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showPublicOnly, setShowPublicOnly] = useState(isPublic || false);
@@ -128,12 +131,17 @@ export function TemplatesList({
 
   const filteredTemplates = finalTemplates
     .filter((template) => {
-      const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+      const matchesSearch =
+        template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        template.description
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        template.tags.some((tag) =>
+          tag.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+
       const matchesVisibility = !showPublicOnly || template.isPublic;
-      
+
       return matchesSearch && matchesVisibility;
     })
     .sort((a, b) => {
@@ -144,7 +152,9 @@ export function TemplatesList({
           return (b.usage?.totalUses || 0) - (a.usage?.totalUses || 0);
         case "recent":
         default:
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+          return (
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          );
       }
     });
 
@@ -181,8 +191,8 @@ export function TemplatesList({
     setEditingTemplate(null);
   };
 
-  const publicTemplates = finalTemplates.filter(t => t.isPublic);
-  const privateTemplates = finalTemplates.filter(t => !t.isPublic);
+  const publicTemplates = finalTemplates.filter((t) => t.isPublic);
+  const privateTemplates = finalTemplates.filter((t) => !t.isPublic);
 
   if (isLoading) {
     return (
@@ -248,7 +258,7 @@ export function TemplatesList({
               </SelectContent>
             </Select>
           </div>
-          
+
           {!isPublic && (
             <div className="flex items-center space-x-2">
               <Switch
@@ -261,7 +271,7 @@ export function TemplatesList({
               </Label>
             </div>
           )}
-          
+
           {showCreateButton && (
             <Button onClick={handleCreateTemplate} className="btn-gradient">
               <Plus className="h-4 w-4 mr-2" />

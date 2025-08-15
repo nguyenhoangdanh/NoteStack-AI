@@ -43,7 +43,7 @@ export function WorkspaceCard({
     <Card
       className={cn(
         "cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02]",
-        workspace.isDefault && "ring-2 ring-primary/20 bg-primary/5"
+        workspace.isDefault && "ring-2 ring-primary/20 bg-primary/5",
       )}
       onClick={handleSelect}
     >
@@ -70,7 +70,7 @@ export function WorkspaceCard({
               Edit Workspace
             </DropdownMenuItem>
             {!workspace.isDefault && (
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={handleDelete}
                 className="text-destructive"
               >
@@ -89,13 +89,13 @@ export function WorkspaceCard({
             </span>
           </div>
         </div>
-        
+
         {workspace.isDefault && (
           <Badge variant="secondary" className="w-fit">
             Default Workspace
           </Badge>
         )}
-        
+
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
           <span>Click to manage workspace</span>

@@ -53,9 +53,9 @@ export function SearchFilters({
             Filters
           </CardTitle>
           {hasActiveFilters && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onClearFilters}
               className="text-muted-foreground hover:text-foreground"
             >
@@ -65,7 +65,11 @@ export function SearchFilters({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Accordion type="multiple" defaultValue={["workspaces", "date", "content"]} className="w-full">
+        <Accordion
+          type="multiple"
+          defaultValue={["workspaces", "date", "content"]}
+          className="w-full"
+        >
           {/* Workspaces */}
           <AccordionItem value="workspaces">
             <AccordionTrigger className="text-sm">
@@ -77,7 +81,7 @@ export function SearchFilters({
             <AccordionContent className="space-y-2">
               <Select
                 value={filters.workspaceId || ""}
-                onValueChange={(value) => 
+                onValueChange={(value) =>
                   onFiltersChange({ workspaceId: value || undefined })
                 }
               >
@@ -112,7 +116,9 @@ export function SearchFilters({
             <AccordionContent className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label htmlFor="date-from" className="text-xs">From</Label>
+                  <Label htmlFor="date-from" className="text-xs">
+                    From
+                  </Label>
                   <Input
                     id="date-from"
                     type="date"
@@ -129,7 +135,9 @@ export function SearchFilters({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date-to" className="text-xs">To</Label>
+                  <Label htmlFor="date-to" className="text-xs">
+                    To
+                  </Label>
                   <Input
                     id="date-to"
                     type="date"
@@ -145,7 +153,7 @@ export function SearchFilters({
                   />
                 </div>
               </div>
-              
+
               {facets && (
                 <div className="space-y-2">
                   <Label className="text-xs">Quick filters</Label>
@@ -160,8 +168,8 @@ export function SearchFilters({
                           date.setDate(date.getDate() - 7);
                           onFiltersChange({
                             dateRange: {
-                              from: date.toISOString().split('T')[0],
-                              to: new Date().toISOString().split('T')[0],
+                              from: date.toISOString().split("T")[0],
+                              to: new Date().toISOString().split("T")[0],
                             },
                           });
                         }}
@@ -182,8 +190,8 @@ export function SearchFilters({
                           date.setDate(date.getDate() - 30);
                           onFiltersChange({
                             dateRange: {
-                              from: date.toISOString().split('T')[0],
-                              to: new Date().toISOString().split('T')[0],
+                              from: date.toISOString().split("T")[0],
+                              to: new Date().toISOString().split("T")[0],
                             },
                           });
                         }}

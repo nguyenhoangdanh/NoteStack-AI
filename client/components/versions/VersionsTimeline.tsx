@@ -27,7 +27,7 @@ const mockVersions: NoteVersion[] = [
     isLatest: true,
   },
   {
-    id: "v2", 
+    id: "v2",
     noteId: "note-1",
     version: 2,
     title: "Added more details",
@@ -36,7 +36,7 @@ const mockVersions: NoteVersion[] = [
     createdAt: "2024-01-15T10:30:00Z",
     createdBy: {
       id: "user-1",
-      name: "John Doe", 
+      name: "John Doe",
       email: "john@example.com",
       image: null,
     },
@@ -51,9 +51,12 @@ interface VersionsTimelineProps {
   limit?: number;
 }
 
-export function VersionsTimeline({ noteId, limit = 10 }: VersionsTimelineProps) {
+export function VersionsTimeline({
+  noteId,
+  limit = 10,
+}: VersionsTimelineProps) {
   const { data: versions, isLoading, error } = useNoteVersions(noteId, limit);
-  
+
   const finalVersions = versions || mockVersions;
 
   if (isLoading) {
@@ -88,7 +91,7 @@ export function VersionsTimeline({ noteId, limit = 10 }: VersionsTimelineProps) 
         <span className="font-medium">Version History</span>
         <Badge variant="secondary">{finalVersions.length}</Badge>
       </div>
-      
+
       <div className="space-y-3">
         {finalVersions.map((version, index) => (
           <Card key={version.id} className="relative">
@@ -96,25 +99,31 @@ export function VersionsTimeline({ noteId, limit = 10 }: VersionsTimelineProps) 
             {index < finalVersions.length - 1 && (
               <div className="absolute left-6 top-12 bottom-0 w-px bg-border" />
             )}
-            
+
             <CardContent className="p-4">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    version.isLatest 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
-                    <span className="text-sm font-medium">v{version.version}</span>
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      version.isLatest
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <span className="text-sm font-medium">
+                      v{version.version}
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <h4 className="font-medium truncate">{version.title}</h4>
                       {version.isLatest && (
-                        <Badge variant="default" className="text-xs">Latest</Badge>
+                        <Badge variant="default" className="text-xs">
+                          Latest
+                        </Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-1">
@@ -122,21 +131,27 @@ export function VersionsTimeline({ noteId, limit = 10 }: VersionsTimelineProps) 
                         <Eye className="h-3 w-3" />
                       </Button>
                       {!version.isLatest && (
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                        >
                           <RotateCcw className="h-3 w-3" />
                         </Button>
                       )}
                     </div>
                   </div>
-                  
+
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                     {version.changeLog}
                   </p>
-                  
+
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      <span>{new Date(version.createdAt).toLocaleString()}</span>
+                      <span>
+                        {new Date(version.createdAt).toLocaleString()}
+                      </span>
                     </div>
                     <span>by {version.createdBy.name}</span>
                     <span>{version.wordCount} words</span>

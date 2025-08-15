@@ -77,7 +77,7 @@ export function CategoryEditor({
 }: CategoryEditorProps) {
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
-  
+
   const isEditing = !!category;
   const isLoading = createCategory.isPending || updateCategory.isPending;
 
@@ -224,12 +224,16 @@ export function CategoryEditor({
                         <SelectTrigger>
                           <SelectValue placeholder="Select color">
                             <div className="flex items-center gap-2">
-                              <div 
+                              <div
                                 className="w-4 h-4 rounded"
                                 style={{ backgroundColor: field.value }}
                               />
                               <span>
-                                {colorOptions.find(c => c.value === field.value)?.label}
+                                {
+                                  colorOptions.find(
+                                    (c) => c.value === field.value,
+                                  )?.label
+                                }
                               </span>
                             </div>
                           </SelectValue>
@@ -239,7 +243,7 @@ export function CategoryEditor({
                         {colorOptions.map((color) => (
                           <SelectItem key={color.value} value={color.value}>
                             <div className="flex items-center gap-2">
-                              <div 
+                              <div
                                 className="w-4 h-4 rounded"
                                 style={{ backgroundColor: color.value }}
                               />
@@ -268,7 +272,11 @@ export function CategoryEditor({
                             <div className="flex items-center gap-2">
                               <span>{field.value}</span>
                               <span>
-                                {iconOptions.find(i => i.value === field.value)?.label}
+                                {
+                                  iconOptions.find(
+                                    (i) => i.value === field.value,
+                                  )?.label
+                                }
                               </span>
                             </div>
                           </SelectValue>

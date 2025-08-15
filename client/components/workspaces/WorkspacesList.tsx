@@ -19,7 +19,7 @@ const mockWorkspaces: Workspace[] = [
     updatedAt: "2024-01-15T14:20:00Z",
   },
   {
-    id: "2", 
+    id: "2",
     name: "Work Projects",
     ownerId: "user-1",
     isDefault: false,
@@ -29,7 +29,7 @@ const mockWorkspaces: Workspace[] = [
   {
     id: "3",
     name: "Research & Studies",
-    ownerId: "user-1", 
+    ownerId: "user-1",
     isDefault: false,
     createdAt: "2024-01-05T11:20:00Z",
     updatedAt: "2024-01-13T15:30:00Z",
@@ -40,17 +40,21 @@ interface WorkspacesListProps {
   showCreateButton?: boolean;
 }
 
-export function WorkspacesList({ showCreateButton = true }: WorkspacesListProps) {
+export function WorkspacesList({
+  showCreateButton = true,
+}: WorkspacesListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
+    null,
+  );
 
   const { data: workspaces, isLoading, error } = useWorkspaces();
 
   const finalWorkspaces = workspaces || mockWorkspaces;
 
   const filteredWorkspaces = finalWorkspaces.filter((workspace) =>
-    workspace.name.toLowerCase().includes(searchQuery.toLowerCase())
+    workspace.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleCreateWorkspace = () => {

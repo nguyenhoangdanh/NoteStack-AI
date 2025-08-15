@@ -1,5 +1,13 @@
 import React from "react";
-import { MoreHorizontal, FileText, Globe, Lock, Copy, Eye, Users } from "lucide-react";
+import {
+  MoreHorizontal,
+  FileText,
+  Globe,
+  Lock,
+  Copy,
+  Eye,
+  Users,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,7 +64,13 @@ export function TemplateCard({
   const usageCount = template.usage?.totalUses || 0;
 
   // Extract variables from content (simple pattern matching for {{variable}})
-  const variables = [...new Set(template.content.match(/\{\{(\w+)\}\}/g)?.map(match => match.slice(2, -2)) || [])];
+  const variables = [
+    ...new Set(
+      template.content
+        .match(/\{\{(\w+)\}\}/g)
+        ?.map((match) => match.slice(2, -2)) || [],
+    ),
+  ];
 
   return (
     <Card
@@ -75,7 +89,7 @@ export function TemplateCard({
           </CardTitle>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-sm text-muted-foreground">
-              {usageCount} {usageCount === 1 ? 'use' : 'uses'}
+              {usageCount} {usageCount === 1 ? "use" : "uses"}
             </span>
             {variables.length > 0 && (
               <Badge variant="outline" className="text-xs">
@@ -111,7 +125,7 @@ export function TemplateCard({
             <DropdownMenuItem onClick={handleEdit}>
               Edit Template
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={handleDelete}
               className="text-destructive"
             >
@@ -124,7 +138,7 @@ export function TemplateCard({
         <p className="text-sm text-muted-foreground line-clamp-2">
           {template.description}
         </p>
-        
+
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>
             Created {new Date(template.createdAt).toLocaleDateString()}
@@ -136,7 +150,7 @@ export function TemplateCard({
             </div>
           )}
         </div>
-        
+
         {template.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {template.tags.slice(0, 3).map((tag, index) => (
@@ -157,7 +171,11 @@ export function TemplateCard({
             <div className="text-xs text-muted-foreground">Variables:</div>
             <div className="flex flex-wrap gap-1">
               {variables.slice(0, 4).map((variable, index) => (
-                <Badge key={index} variant="outline" className="text-xs font-mono">
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="text-xs font-mono"
+                >
                   {`{{${variable}}}`}
                 </Badge>
               ))}
@@ -171,7 +189,7 @@ export function TemplateCard({
         )}
 
         {/* Action Button */}
-        <Button 
+        <Button
           className="w-full btn-gradient mt-4 opacity-0 group-hover:opacity-100 transition-opacity"
           onClick={(e) => {
             e.stopPropagation();

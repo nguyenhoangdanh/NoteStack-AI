@@ -37,7 +37,9 @@ export default function CategoriesPage() {
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Categories
+              </CardTitle>
               <Tag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -47,43 +49,47 @@ export default function CategoriesPage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Auto-Generated</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Auto-Generated
+              </CardTitle>
               <Bot className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">8</div>
               <div className="flex items-center gap-1">
-                <Badge variant="secondary" className="text-xs">AI Powered</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  AI Powered
+                </Badge>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Categorized Notes</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Categorized Notes
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">127</div>
-              <p className="text-xs text-muted-foreground">
-                85% of all notes
-              </p>
+              <p className="text-xs text-muted-foreground">85% of all notes</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Top Category</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Top Category
+              </CardTitle>
               <Tag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Work</div>
-              <p className="text-xs text-muted-foreground">
-                42 notes assigned
-              </p>
+              <p className="text-xs text-muted-foreground">42 notes assigned</p>
             </CardContent>
           </Card>
         </div>
@@ -96,9 +102,13 @@ export default function CategoriesPage() {
                 <Bot className="h-6 w-6 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold mb-2">AI-Powered Auto-Categorization</h3>
+                <h3 className="font-semibold mb-2">
+                  AI-Powered Auto-Categorization
+                </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Our intelligent system analyzes your notes' content and automatically suggests relevant categories based on keywords, context, and patterns.
+                  Our intelligent system analyzes your notes' content and
+                  automatically suggests relevant categories based on keywords,
+                  context, and patterns.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary">Keyword Analysis</Badge>
