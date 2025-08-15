@@ -1,352 +1,172 @@
-import React, { useState, useRef, useEffect } from "react";
-import {
-  Send,
-  Sparkles,
-  Copy,
-  RefreshCw,
-  Download,
-  Bot,
-  User,
-} from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import { ArrowLeft, Bot, Sparkles, MessageSquare, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useChat } from "@/hooks/useChat";
-import { toast } from "react-hot-toast";
-import type { ChatCompleteResponse, Citation } from "@/types";
-
-interface ChatMessage {
-  id: string;
-  type: "user" | "assistant";
-  content: string;
-  citations?: Citation[];
-  timestamp: Date;
-}
-
-const mockMessages: ChatMessage[] = [
-  {
-    id: "1",
-    type: "assistant",
-    content:
-      "Hello! I'm your AI assistant. I can help you with:\n\n• **Note analysis** - Analyze your notes for insights\n• **Content generation** - Help write and improve content\n• **Research assistance** - Find related information\n• **Summarization** - Create summaries of your notes\n\nWhat would you like to explore today?",
-    timestamp: new Date(Date.now() - 60000),
-  },
-  {
-    id: "2",
-    type: "user",
-    content:
-      "Can you help me understand the main themes in my React development notes?",
-    timestamp: new Date(Date.now() - 30000),
-  },
-  {
-    id: "3",
-    type: "assistant",
-    content:
-      "Based on your React development notes, I can identify several key themes:\n\n**1. Component Architecture**\n- Functional vs class components\n- Component composition patterns\n- Props and state management\n\n**2. State Management**\n- useState and useEffect hooks\n- Context API usage\n- External state libraries (Redux, Zustand)\n\n**3. Performance Optimization**\n- Memoization techniques\n- Code splitting strategies\n- Bundle optimization\n\n**4. Testing Approaches**\n- Unit testing with Jest\n- Component testing with React Testing Library\n- E2E testing patterns\n\nWould you like me to dive deeper into any of these themes?",
-    citations: [
-      { title: "React Best Practices", heading: "Component Patterns" },
-      { title: "State Management Guide", heading: "Hook Patterns" },
-    ],
-    timestamp: new Date(),
-  },
-];
+import { ChatInterface } from "@/components/chat/ChatInterface";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>(mockMessages);
-  const [input, setInput] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const {
-    completeChatAsync,
-    isCompletingChat,
-    completeChatError,
-    streamChat,
-    isStreamingChat,
-  } = useChat();
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = async () => {
-    if (!input.trim() || isCompletingChat || isStreamingChat) return;
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: "user",
-      content: input.trim(),
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-
-    try {
-      const response = await completeChatAsync({
-        query: input.trim(),
-        model: "gpt-4",
-        maxTokens: 1000,
-      });
-
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        type: "assistant",
-        content: response.response,
-        citations: response.citations,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      toast.error("Failed to get AI response");
-
-      // Add error message
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        type: "assistant",
-        content: "I apologize, but I encountered an error. Please try again.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const copyMessage = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast.success("Message copied to clipboard");
-  };
-
-  const clearChat = () => {
-    setMessages([mockMessages[0]]); // Keep welcome message
-  };
-
-  const exportChat = () => {
-    const chatContent = messages
-      .map((msg) => `${msg.type === "user" ? "You" : "AI"}: ${msg.content}`)
-      .join("\n\n");
-
-    const blob = new Blob([chatContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `ai-chat-${new Date().toISOString().split("T")[0]}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
-    <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-6rem)]">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gradient flex items-center gap-3">
-              <Bot className="h-8 w-8" />
-              AI Assistant
-            </h1>
-            <p className="text-muted-foreground">
-              Get intelligent help with your notes, research, and content
-              creation
-            </p>
+        <div className="flex items-center gap-4 mb-8">
+          <Link to="/dashboard">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
+        {/* Page Title */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Bot className="h-6 w-6 text-primary" />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={exportChat}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-            <Button variant="outline" onClick={clearChat}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Clear
-            </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gradient">AI Chat Assistant</h1>
+            <p className="text-muted-foreground">
+              Get intelligent insights and assistance with your notes using AI
+            </p>
           </div>
         </div>
 
-        {/* Chat Container */}
-        <Card className="flex-1 flex flex-col card-gradient">
-          {/* Messages */}
-          <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-full px-4 py-4">
-              <div className="space-y-6">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex gap-3 ${
-                      message.type === "user" ? "justify-end" : "justify-start"
-                    }`}
-                  >
-                    {message.type === "assistant" && (
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Bot className="h-4 w-4 text-primary" />
-                        </div>
-                      </div>
-                    )}
-
-                    <div
-                      className={`max-w-[80%] ${
-                        message.type === "user" ? "order-2" : ""
-                      }`}
-                    >
-                      <div
-                        className={`rounded-lg p-4 ${
-                          message.type === "user"
-                            ? "bg-primary text-primary-foreground ml-auto"
-                            : "bg-muted"
-                        }`}
-                      >
-                        <div className="prose prose-sm max-w-none dark:prose-invert">
-                          {message.content.split("\n").map((line, index) => (
-                            <div key={index}>
-                              {line.startsWith("•") ? (
-                                <div className="ml-4">{line}</div>
-                              ) : line.startsWith("**") &&
-                                line.endsWith("**") ? (
-                                <h4 className="font-semibold mt-3 mb-1">
-                                  {line.slice(2, -2)}
-                                </h4>
-                              ) : (
-                                <p className="mb-2">{line}</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Citations */}
-                        {message.citations && message.citations.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-border/50">
-                            <p className="text-xs text-muted-foreground mb-2">
-                              Sources:
-                            </p>
-                            <div className="flex flex-wrap gap-1">
-                              {message.citations.map((citation, index) => (
-                                <Badge
-                                  key={index}
-                                  variant="secondary"
-                                  className="text-xs"
-                                >
-                                  {citation.title}
-                                  {citation.heading && ` - ${citation.heading}`}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Message Actions */}
-                      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                        <span>{message.timestamp.toLocaleTimeString()}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyMessage(message.content)}
-                          className="h-6 px-2"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {message.type === "user" && (
-                      <div className="flex-shrink-0 order-3">
-                        <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
-                          <User className="h-4 w-4 text-secondary" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {/* Loading indicator */}
-                {(isCompletingChat || isStreamingChat) && (
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Bot className="h-4 w-4 text-primary animate-pulse" />
-                      </div>
-                    </div>
-                    <div className="bg-muted rounded-lg p-4">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce delay-100" />
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce delay-200" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div ref={messagesEndRef} />
+        {/* Overview Cards */}
+        <div className="grid gap-4 md:grid-cols-4 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Chats</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">47</div>
+              <p className="text-xs text-muted-foreground">
+                +12 from last week
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">AI Model</CardTitle>
+              <Bot className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">GPT-4</div>
+              <div className="flex items-center gap-1">
+                <Badge variant="secondary" className="text-xs">Latest</Badge>
               </div>
-            </ScrollArea>
-          </CardContent>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Response Time</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">2.3s</div>
+              <p className="text-xs text-muted-foreground">
+                Average response time
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Notes Analyzed</CardTitle>
+              <Sparkles className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">342</div>
+              <p className="text-xs text-muted-foreground">
+                In current session
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Input */}
-          <div className="border-t p-4">
-            <div className="flex gap-3">
+        {/* AI Features Info */}
+        <Card className="mb-8 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
               <div className="flex-1">
-                <Input
-                  placeholder="Ask me anything about your notes..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  disabled={isCompletingChat || isStreamingChat}
-                />
+                <h3 className="font-semibold mb-2">Intelligent Note Assistant</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Our AI assistant can help you summarize notes, find connections between ideas, generate insights, and answer questions about your content using advanced language models.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">Note Summarization</Badge>
+                  <Badge variant="secondary">Content Analysis</Badge>
+                  <Badge variant="secondary">Idea Connections</Badge>
+                  <Badge variant="secondary">Smart Q&A</Badge>
+                  <Badge variant="secondary">Writing Assistance</Badge>
+                </div>
               </div>
-              <Button
-                onClick={handleSendMessage}
-                disabled={!input.trim() || isCompletingChat || isStreamingChat}
-                className="btn-gradient"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Quick Actions */}
-            <div className="flex gap-2 mt-3">
-              <Badge
-                variant="outline"
-                className="cursor-pointer hover:bg-accent"
-              >
-                Summarize my notes
-              </Badge>
-              <Badge
-                variant="outline"
-                className="cursor-pointer hover:bg-accent"
-              >
-                Find related content
-              </Badge>
-              <Badge
-                variant="outline"
-                className="cursor-pointer hover:bg-accent"
-              >
-                Generate ideas
-              </Badge>
-              <Badge
-                variant="outline"
-                className="cursor-pointer hover:bg-accent"
-              >
-                Improve writing
-              </Badge>
+        {/* Chat Interface */}
+        <Card className="h-[600px]">
+          <ChatInterface />
+        </Card>
+
+        {/* Tips Section */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Tips for Better AI Interactions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-2">
+                <h4 className="font-medium">Be Specific</h4>
+                <p className="text-sm text-muted-foreground">
+                  Ask specific questions about your notes for more targeted responses.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">Use Context</h4>
+                <p className="text-sm text-muted-foreground">
+                  Reference specific notes, tags, or timeframes for better understanding.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">Iterate</h4>
+                <p className="text-sm text-muted-foreground">
+                  Build on previous responses by asking follow-up questions.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">Explore Connections</h4>
+                <p className="text-sm text-muted-foreground">
+                  Ask about relationships between different notes and topics.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">Request Formats</h4>
+                <p className="text-sm text-muted-foreground">
+                  Ask for summaries, lists, tables, or other specific formats.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-medium">Use Examples</h4>
+                <p className="text-sm text-muted-foreground">
+                  Provide examples when asking for creative or analytical tasks.
+                </p>
+              </div>
             </div>
-          </div>
+          </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
